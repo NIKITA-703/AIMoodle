@@ -227,3 +227,11 @@ auth_data.py
 
 html/*
 HTML Courses/*
+
+# Project runtime data
+data/*
+!data/.gitkeep
+
+# Local webdrivers
+drivers/*
+!drivers/.gitkeep

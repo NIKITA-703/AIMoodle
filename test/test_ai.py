@@ -1,5 +1,5 @@
 import os
-from ai_utils import ask_ai_question
+from app.ai_utils import ask_ai_question
 
 
 # должен находится вместе с файлом ai_utils
