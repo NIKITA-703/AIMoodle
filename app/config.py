@@ -9,6 +9,7 @@ from selenium.webdriver.chrome.service import Service
 def _load_env_file(env_path: Path) -> None:
     if not env_path.exists():
         return
+
     try:
         for raw_line in env_path.read_text(encoding="utf-8").splitlines():
             line = raw_line.strip()
@@ -32,32 +33,28 @@ DATA_DIR.mkdir(exist_ok=True)
 DRIVERS_DIR.mkdir(exist_ok=True)
 _load_env_file(ENV_PATH)
 
-# Data files
 USER_AGENT_FILE = DATA_DIR / "user_agent.txt"
 COOKIES_FILE = DATA_DIR / "moodle_cookies.pkl"
 STATS_FILE = DATA_DIR / "global_stats.json"
 BOT_HISTORY_FILE = DATA_DIR / "bot_history.log"
 
-# ============ Webdriver Options ============
 options = webdriver.ChromeOptions()
 options.add_argument("-window-size=1590,950")
-options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+options.binary_location = os.getenv(
+    "CHROME_BINARY_PATH",
+    r"C:\Users\NIKITA\Downloads\chrome-win64(1)\chrome-win64\chrome.exe",
+)
 
-# ============ USER AGENT ============
-rand_user_agent = "unknown"
 try:
     with open(USER_AGENT_FILE, "r", encoding="utf-8") as f:
         user_agents = [line.strip() for line in f if line.strip()]
-    if user_agents:
-        rand_user_agent = random.choice(user_agents)
-        options.add_argument(f"user-agent={rand_user_agent}")
+    rand_user_agent = random.choice(user_agents)
+    options.add_argument(f"user-agent={rand_user_agent}")
 except Exception:
-    pass
+    rand_user_agent = "unknown"
 
-# ============ Chromium ============
 driver_path = os.getenv("CHROMEDRIVER_PATH", str(DRIVERS_DIR / "chromedriver.exe"))
 service = Service(driver_path)
 
-# ============ URLS ============
 url_home_page = "https://lms.mitu.msk.ru/my/"
 url_login = "https://lms.mitu.msk.ru/login/index.php"

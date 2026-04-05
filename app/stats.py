@@ -13,13 +13,14 @@ def format_duration(seconds):
     s = seconds % 60
     return f"{h}ч {m}м {s}с"
 
+
 def get_global_stats():
     """Загружает статистику. Если полей нет (старый файл), добавляет нули."""
     default_stats = {
         "total_tests": 0,
-        "total_test_time_sec": 0,  # Чистое время решения тестов
-        "total_uptime_sec": 0,  # Общее время работы бота
-        "last_run": ""
+        "total_test_time_sec": 0,
+        "total_uptime_sec": 0,
+        "last_run": "",
     }
 
     if not os.path.exists(STATS_FILE):
@@ -28,10 +29,10 @@ def get_global_stats():
     try:
         with open(STATS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Объединяем с дефолтными, чтобы не сломалось, если файл старый
             return {**default_stats, **data}
     except Exception:
         return default_stats
+
 
 def update_stats(tests_added=0, test_time_added=0, uptime_added=0):
     """
@@ -51,4 +52,3 @@ def update_stats(tests_added=0, test_time_added=0, uptime_added=0):
         json.dump(stats, f, indent=4, ensure_ascii=False)
 
     return stats
-

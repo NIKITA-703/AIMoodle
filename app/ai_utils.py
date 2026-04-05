@@ -1,8 +1,7 @@
-import requests
-import json
 import os
 import re
 
+import requests
 from bs4 import BeautifulSoup
 
 
@@ -20,11 +19,9 @@ def clean_html_to_text(html_path):
         with open(html_path, "r", encoding="utf-8") as f:
             html_content = f.read()
 
-        # Используем 'html.parser' (он встроен в Python, lxml может требовать установки)
         soup = BeautifulSoup(html_content, "html.parser")
         print("   [DEBUG] HTML загружен в BeautifulSoup")
 
-        # 1. Удаляем мусор
         garbage_selectors = [
             "script", "style", "noscript", "iframe",
             "nav", "footer", "header", "form",
@@ -39,7 +36,6 @@ def clean_html_to_text(html_path):
                 count_deleted += 1
         print(f"   [DEBUG] Удалено мусорных блоков: {count_deleted}")
 
-        # 2. Ищем контент
         main_content = soup.find(id="region-main")
         if not main_content:
             main_content = soup.find(role="main")
@@ -52,16 +48,13 @@ def clean_html_to_text(html_path):
 
         print("   [DEBUG] Основной контент найден. Разворачиваем теги...")
 
-        # 3. Разворачиваем теги (убираем жирный/курсив, оставляем текст)
         inline_tags = ["b", "strong", "i", "em", "u", "span", "a", "font", "mark", "small"]
         for tag_name in inline_tags:
             for tag in main_content.find_all(tag_name):
                 tag.unwrap()
 
-        # 4. Достаем текст
-        raw_text = main_content.get_text(separator='\n')
+        raw_text = main_content.get_text(separator="\n")
 
-        # 5. Чистим строки
         lines = []
         for line in raw_text.splitlines():
             stripped = line.strip()
@@ -69,11 +62,9 @@ def clean_html_to_text(html_path):
                 clean_line = " ".join(stripped.split())
                 lines.append(clean_line)
 
-        clean_text = '\n'.join(lines)
+        clean_text = "\n".join(lines)
 
         print(f"   [DEBUG] Текст сформирован. Длина: {len(clean_text)} символов")
-
-        # !!! ВОТ САМОЕ ВАЖНОЕ !!!
         return clean_text
 
     except Exception as e:
@@ -100,22 +91,18 @@ def ask_ai_question(question, options, lecture_text):
     """
     url = "http://localhost:1234/v1/chat/completions"
 
-    # 1. Улучшенный Промпт
-    # Мы явно требуем JSON или строгий формат, чтобы модель не болтала лишнего после раздумий.
     system_prompt = (
         "Ты — русскоязычный студент, сдающий экзамен. "
         "Твоя задача — выбрать правильный ответ на основе лекции.\n"
         "ИНСТРУКЦИЯ:\n"
         "1. Сначала подумай, но выводи ответ строго в конце.\n"
         "2. Твой финальный ответ должен быть на РУССКОМ языке.\n"
-        "3. Формат финального ответа: ТОЛЬКО буква и текст варианта (например: 'a. ответ')."
+        "3. Формат финального ответа: ТОЛЬКО буква и текст варианта "
+        "(например: 'a. ответ')."
     )
 
-    # Ограничим лекцию, чтобы оставить место для ответа
-    # (Учитывая, что ты увеличил контекст в LM Studio до 12k+, тут можно ставить много)
     context_limit = 20000
 
-    # Если опций нет, пишем подсказку для ИИ
     if not options or options.strip() == "":
         options_text = "ВАРИАНТОВ НЕТ. Это вопрос на ввод текста. Впиши пропущенное слово или ответ."
     else:
@@ -140,58 +127,17 @@ def ask_ai_question(question, options, lecture_text):
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.1,
-        # ВАЖНО: Увеличиваем лимит, чтобы модель успела "подумать" и написать ответ
         "max_tokens": 1500
     }
 
     try:
-        response = requests.post(url, json=payload, timeout=180)  # Таймаут побольше
+        response = requests.post(url, json=payload, timeout=180)
         if response.status_code == 200:
             result = response.json()
-            raw_content = result['choices'][0]['message']['content']
-
-            # --- МАГИЯ ОЧИСТКИ ОТВЕТА ---
-
-            # 1. Удаляем блоки <think>...</think> (если они есть)
+            raw_content = result["choices"][0]["message"]["content"]
             clean_content = re.sub(r"<think>.*?</think>", "", raw_content, flags=re.DOTALL).strip()
-
-            # 2. Если модель написала много текста, пробуем найти последнюю строку (обычно там ответ)
-            # Или просто возвращаем очищенный текст, так как промпт просил краткости
             return clean_content
-
         else:
             return f"Ошибка сервера: {response.status_code}"
     except Exception as e:
         return f"Ошибка соединения: {e}"
-
-
-if __name__ == "__main__":
-    # Тестовый запуск
-    base_dir = os.path.join(os.getcwd(), "HTML Courses", "Операционные системы ч.1")
-
-    print(f"📂 Папка: {base_dir}")
-
-    if os.path.exists(base_dir):
-        files = [f for f in os.listdir(base_dir) if f.endswith(".html")]
-        if files:
-            latest_file = max([os.path.join(base_dir, f) for f in files], key=os.path.getctime)
-            print(f"📄 Файл: {os.path.basename(latest_file)}")
-
-            # Вызов функции
-            result_text = clean_html_to_text(latest_file)
-
-            # Проверка результата
-            if result_text is None:
-                print("😱 ОШИБКА: Функция вернула None! (Проверь return)")
-            elif result_text.startswith("❌"):
-                print(f"Ошибка внутри функции: {result_text}")
-            elif result_text == "":
-                print("⚠️ Предупреждение: Текст пустой (возможно, лекция пустая?)")
-            else:
-                save_text_file(result_text, latest_file)
-                print("✅ УСПЕХ! Текст получен и сохранен.")
-        else:
-            print("Нет HTML файлов.")
-    else:
-        print("Папка не найдена.")
-
