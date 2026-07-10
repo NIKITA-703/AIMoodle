@@ -1,0 +1,5 @@
+beautifulsoup4
+cryptography
+pypdf
+requests
+selenium

@@ -2,11 +2,17 @@
 
 from selenium import webdriver
 
-from app.ai_utils import clean_html_to_text, save_text_file
+from app.ai_utils import check_ai_ready, clean_html_to_text, is_context_error_text, save_text_file
 from app.auth import login_on_mudl
 from app.config import options, rand_user_agent, service, url_home_page, url_login
 from app.flows.course_flow import find_current_test_info, get_current_course_link
-from app.flows.lecture_flow import find_lecture_url, save_page_html, try_get_lecture_via_breadcrumbs
+from app.flows.lecture_flow import (
+    find_lecture_url,
+    is_final_test,
+    load_saved_course_context,
+    save_page_html,
+    try_get_lecture_via_breadcrumbs,
+)
 from app.flows.test_flow import solve_active_test, start_test_attempt
 from app.stats import format_duration, get_global_stats, update_stats
 
@@ -24,6 +30,14 @@ def run():
     print(f"🏆 Всего пройдено: {stats['total_tests']}")
     print(f"⏳ Чистое время в тестах: {format_duration(stats['total_test_time_sec'])}")
     print(f"⚡ Общее время работы: {format_duration(stats['total_uptime_sec'])}\n")
+
+    ai_ready, ai_message = check_ai_ready()
+    if ai_ready:
+        print(f"🧠 {ai_message}\n")
+    else:
+        print(f"❌ {ai_message}")
+        print("⛔ Запуск бота остановлен. Сначала включи LM Studio и загрузи модель.\n")
+        return
 
     try:
         driver = webdriver.Chrome(service=service, options=options)
@@ -83,8 +97,12 @@ def run():
                         h_path = save_page_html(driver, l_url, topic_name, course_name)
                         if h_path:
                             lecture_text = clean_html_to_text(h_path)
-                            save_text_file(lecture_text, h_path)
-                            print(f"🧠 Лекция загружена ({len(lecture_text)} симв).\n")
+                            if is_context_error_text(lecture_text):
+                                print(f"⚠️ Не удалось извлечь текст лекции: {lecture_text}")
+                                lecture_text = ""
+                            else:
+                                save_text_file(lecture_text, h_path)
+                                print(f"🧠 Лекция загружена ({len(lecture_text)} симв).\n")
                         else:
                             print("❌ Ошибка: save_page_html вернула None.\n")
                     else:
@@ -99,6 +117,10 @@ def run():
                     print("⚠️ Лекция не найдена на главной. Пробуем через навигацию теста...")
                     lecture_text = try_get_lecture_via_breadcrumbs(driver, course_name)
 
+                    if is_context_error_text(lecture_text):
+                        print(f"⚠️ План Б не смог извлечь текст лекции: {lecture_text}")
+                        lecture_text = ""
+
                     if driver.current_url != test_url:
                         print("🔙 Возвращаемся в тест...")
                         driver.get(test_url)
@@ -106,9 +128,16 @@ def run():
                 if not lecture_text:
                     print("🤷‍♂️ Лекция так и не найдена. ИИ будет решать на общих знаниях.")
 
+                if not lecture_text and is_final_test(test_name, topic_name):
+                    print("📚 Это итоговый тест. Пробуем собрать общий контекст по всему курсу из сохраненных лекций...")
+                    lecture_text = load_saved_course_context(course_name)
+
+                    if not lecture_text:
+                        print("⚠️ Общий контекст курса для итогового теста пока не найден.")
+
                 if start_test_attempt(driver):
                     test_start_time = time.time()
-                    solve_active_test(driver, lecture_text)
+                    solve_active_test(driver, lecture_text, course_name=course_name, test_name=test_name)
                     test_end_time = time.time()
                     duration = test_end_time - test_start_time
 
@@ -141,8 +170,11 @@ def run():
 
             print(f"\n⏱️ ОБЩЕЕ ВРЕМЯ РАБОТЫ: {int(h)}ч {int(m)}мин {int(s)}сек\n")
 
-            driver.quit()
-            print("Browser CLOSED")
+            try:
+                driver.quit()
+                print("Browser CLOSED")
+            except BaseException as e:
+                print(f"⚠️ Не удалось корректно закрыть браузер: {e}")
 
 
 if __name__ == "__main__":

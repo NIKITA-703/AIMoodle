@@ -2,7 +2,10 @@
 import re
 import time
 from datetime import datetime
+from urllib.parse import urljoin
 
+import requests
+from bs4 import BeautifulSoup
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -14,7 +17,7 @@ from app.browser_utils import sanitize_filename
 
 def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
     """
-    Ищет лекцию в блоках 'Ресурсы' (resource) И 'Лекции' (lesson).
+    Ищет лекцию в блоках 'Ресурсы' (resource) и 'Лекции' (lesson).
     Игнорирует различия 'Тема'/'Лекция'.
     """
     if not target_topic_name:
@@ -25,13 +28,13 @@ def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
 
     def normalize_name(text):
         t = text.lower().strip()
-        t = re.sub(r'^(тема|лекция|глава|раздел|занятие|практика)\s*', '', t)
+        t = re.sub(r"^(тема|лекция|глава|раздел|занятие|практика)\s*", "", t)
         return t.strip(" .:-")
 
     def extract_number(text):
-        match = re.search(r'\b(\d+(?:[\.,]\d+)*)\b', text)
+        match = re.search(r"\b(\d+(?:[\.,]\d+)*)\b", text)
         if match:
-            return match.group(1).replace(',', '.')
+            return match.group(1).replace(",", ".")
         return None
 
     target_number = None
@@ -100,14 +103,93 @@ def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
     return None
 
 
+def _build_authenticated_session(driver):
+    session = requests.Session()
+
+    try:
+        user_agent = driver.execute_script("return navigator.userAgent;")
+        if user_agent:
+            session.headers["User-Agent"] = user_agent
+    except Exception:
+        pass
+
+    for cookie in driver.get_cookies():
+        try:
+            session.cookies.set(cookie["name"], cookie["value"])
+        except Exception:
+            continue
+
+    return session
+
+
+def _extract_embedded_file_url(page_url, html_text):
+    soup = BeautifulSoup(html_text, "html.parser")
+
+    for tag in soup.find_all(["iframe", "embed", "object"]):
+        src = tag.get("src") or tag.get("data")
+        if src:
+            return urljoin(page_url, src)
+
+    for tag in soup.find_all("a", href=True):
+        href = urljoin(page_url, tag["href"])
+        href_lower = href.lower()
+        if ".pdf" in href_lower or "pluginfile.php" in href_lower or "forcedownload=1" in href_lower:
+            return href
+
+    return None
+
+
+def _save_binary_file(content, full_path):
+    with open(full_path, "wb") as f:
+        f.write(content)
+
+
 def save_page_html(driver, url, file_prefix="lecture", course_name="General_Course"):
     """
-    Сохраняет HTML и ВОЗВРАЩАЕТ ПУТЬ к файлу
+    Сохраняет HTML или PDF и возвращает путь к файлу.
     """
     try:
-        print(f"Переходим к лекции: {url} \n")
-        driver.get(url)
+        safe_course = sanitize_filename(course_name)
+        safe_prefix = sanitize_filename(file_prefix)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+        base_folder = "HTML Courses"
+        course_folder = os.path.join(base_folder, safe_course)
+
+        if not os.path.exists(course_folder):
+            os.makedirs(course_folder)
+            print(f"📁 Создана папка курса: {course_folder}")
+
+        print(f"Переходим к лекции: {url} \n")
+
+        session = _build_authenticated_session(driver)
+
+        try:
+            response = session.get(url, timeout=60, allow_redirects=True)
+            content_type = response.headers.get("Content-Type", "").lower()
+
+            if response.ok and ("application/pdf" in content_type or response.content.startswith(b"%PDF")):
+                full_path = os.path.join(course_folder, f"{safe_prefix}_{timestamp}.pdf")
+                _save_binary_file(response.content, full_path)
+                print(f"💾 PDF лекции сохранен: {full_path} \n")
+                return full_path
+
+            if response.ok and "text/html" in content_type:
+                embedded_file_url = _extract_embedded_file_url(response.url, response.text)
+                if embedded_file_url:
+                    embedded_response = session.get(embedded_file_url, timeout=60, allow_redirects=True)
+                    embedded_type = embedded_response.headers.get("Content-Type", "").lower()
+                    if embedded_response.ok and (
+                        "application/pdf" in embedded_type or embedded_response.content.startswith(b"%PDF")
+                    ):
+                        full_path = os.path.join(course_folder, f"{safe_prefix}_{timestamp}.pdf")
+                        _save_binary_file(embedded_response.content, full_path)
+                        print(f"💾 PDF лекции сохранен: {full_path} \n")
+                        return full_path
+        except Exception as e:
+            print(f"⚠️ Не удалось скачать материал напрямую, пробуем через браузер: {e}")
+
+        driver.get(url)
         driver.set_page_load_timeout(60)
 
         try:
@@ -122,20 +204,7 @@ def save_page_html(driver, url, file_prefix="lecture", course_name="General_Cour
             print("❌ Страница пустая или не загрузилась.")
             return None
 
-        safe_course = sanitize_filename(course_name)
-        safe_prefix = sanitize_filename(file_prefix)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-        base_folder = "HTML Courses"
-        course_folder = os.path.join(base_folder, safe_course)
-
-        if not os.path.exists(course_folder):
-            os.makedirs(course_folder)
-            print(f"📁 Создана папка курса: {course_folder}")
-
-        filename = f"{safe_prefix}_{timestamp}.html"
-        full_path = os.path.join(course_folder, filename)
-
+        full_path = os.path.join(course_folder, f"{safe_prefix}_{timestamp}.html")
         with open(full_path, "w", encoding="utf-8") as f:
             f.write(driver.page_source)
         print(f"💾 Лекция сохранена: {full_path} \n")
@@ -147,7 +216,7 @@ def save_page_html(driver, url, file_prefix="lecture", course_name="General_Cour
 
 def try_get_lecture_via_breadcrumbs(driver, course_name):
     """
-    ПЛАН Б: Заходит в хлебные крошки теста, переходит в секцию темы
+    ПЛАН Б: заходит в хлебные крошки теста, переходит в секцию темы
     и пытается найти там лекцию.
     """
     print("🕵️ ПЛАН Б: Пытаемся найти лекцию через навигацию (хлебные крошки)...")
@@ -194,9 +263,6 @@ def try_get_lecture_via_breadcrumbs(driver, course_name):
                 found_name = name
                 if "лекция" in name.lower():
                     break
-                if not found_url:
-                    found_url = href
-                    found_name = name
 
         if found_url:
             h_path = save_page_html(driver, found_url, f"Breadcrumb_{found_name}", course_name)
@@ -210,3 +276,80 @@ def try_get_lecture_via_breadcrumbs(driver, course_name):
     except Exception as e:
         print(f"❌ Ошибка Плана Б: {e}")
         return None
+
+
+def is_final_test(test_name="", topic_name=""):
+    haystack = f"{test_name} {topic_name}".lower()
+    return "итогов" in haystack or "экзамен" in haystack or "зачет" in haystack
+
+
+
+def load_saved_course_context(course_name, max_chars=18000):
+    """
+    Собирает единый контекст по курсу из уже сохраненных материалов.
+    Сначала использует .txt, если их нет — пытается извлечь текст из .html/.pdf.
+    """
+    safe_course = sanitize_filename(course_name)
+    course_folder = os.path.join("HTML Courses", safe_course)
+
+    if not os.path.exists(course_folder):
+        print(f"⚠️ Для курса '{course_name}' еще нет сохраненной папки с лекциями.")
+        return ""
+
+    txt_files = sorted(
+        [os.path.join(course_folder, name) for name in os.listdir(course_folder) if name.lower().endswith(".txt")]
+    )
+
+    if not txt_files:
+        source_files = sorted(
+            [
+                os.path.join(course_folder, name)
+                for name in os.listdir(course_folder)
+                if name.lower().endswith((".html", ".pdf"))
+            ]
+        )
+
+        for source_path in source_files:
+            text = clean_html_to_text(source_path)
+            if text and not text.startswith("❌"):
+                txt_path = save_text_file(text, source_path)
+                if txt_path:
+                    txt_files.append(txt_path)
+
+    if not txt_files:
+        print(f"⚠️ В папке курса '{course_name}' не найдено текстовых материалов для итогового контекста.")
+        return ""
+
+    parts = []
+    total_len = 0
+
+    for txt_path in txt_files:
+        try:
+            with open(txt_path, "r", encoding="utf-8") as f:
+                text = f.read().strip()
+        except Exception:
+            continue
+
+        if not text or text.startswith("❌"):
+            continue
+
+        title = os.path.splitext(os.path.basename(txt_path))[0]
+        chunk = f"\n\n### {title}\n{text}"
+
+        if total_len + len(chunk) > max_chars:
+            remaining = max_chars - total_len
+            if remaining > 500:
+                parts.append(chunk[:remaining])
+            break
+
+        parts.append(chunk)
+        total_len += len(chunk)
+
+    combined = "".join(parts).strip()
+
+    if combined:
+        print(f"📚 Собран общий контекст курса '{course_name}' ({len(combined)} симв).")
+    else:
+        print(f"⚠️ Не удалось собрать общий контекст курса '{course_name}'.")
+
+    return combined

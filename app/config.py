@@ -37,6 +37,7 @@ USER_AGENT_FILE = DATA_DIR / "user_agent.txt"
 COOKIES_FILE = DATA_DIR / "moodle_cookies.pkl"
 STATS_FILE = DATA_DIR / "global_stats.json"
 BOT_HISTORY_FILE = DATA_DIR / "bot_history.log"
+QUIZ_MEMORY_FILE = DATA_DIR / "quiz_memory.json"
 
 options = webdriver.ChromeOptions()
 options.add_argument("-window-size=1590,950")
