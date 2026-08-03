@@ -284,7 +284,7 @@ def is_final_test(test_name="", topic_name=""):
 
 
 
-def load_saved_course_context(course_name, max_chars=18000):
+def load_saved_course_context(course_name, max_chars=None):
     """
     Собирает единый контекст по курсу из уже сохраненных материалов.
     Сначала использует .txt, если их нет — пытается извлечь текст из .html/.pdf.
@@ -296,9 +296,7 @@ def load_saved_course_context(course_name, max_chars=18000):
         print(f"⚠️ Для курса '{course_name}' еще нет сохраненной папки с лекциями.")
         return ""
 
-    txt_files = sorted(
-        [os.path.join(course_folder, name) for name in os.listdir(course_folder) if name.lower().endswith(".txt")]
-    )
+    txt_files = _latest_unique_lecture_files(course_folder)
 
     if not txt_files:
         source_files = sorted(
@@ -336,7 +334,7 @@ def load_saved_course_context(course_name, max_chars=18000):
         title = os.path.splitext(os.path.basename(txt_path))[0]
         chunk = f"\n\n### {title}\n{text}"
 
-        if total_len + len(chunk) > max_chars:
+        if max_chars and total_len + len(chunk) > max_chars:
             remaining = max_chars - total_len
             if remaining > 500:
                 parts.append(chunk[:remaining])
@@ -353,3 +351,22 @@ def load_saved_course_context(course_name, max_chars=18000):
         print(f"⚠️ Не удалось собрать общий контекст курса '{course_name}'.")
 
     return combined
+
+
+def _latest_unique_lecture_files(course_folder):
+    """Оставляет последнюю сохранённую копию каждой лекции."""
+    groups = {}
+    timestamp_pattern = re.compile(r"_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$")
+
+    for name in os.listdir(course_folder):
+        if not name.lower().endswith(".txt"):
+            continue
+        path = os.path.join(course_folder, name)
+        stem = os.path.splitext(name)[0]
+        stem = re.sub(r"^Breadcrumb_", "", stem, flags=re.IGNORECASE)
+        identity = timestamp_pattern.sub("", stem).strip().lower()
+        current = groups.get(identity)
+        if current is None or os.path.getmtime(path) > os.path.getmtime(current):
+            groups[identity] = path
+
+    return sorted(groups.values())

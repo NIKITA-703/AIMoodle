@@ -3,3 +3,4 @@ cryptography
 pypdf
 requests
 selenium
+pytest>=8.0,<9.0

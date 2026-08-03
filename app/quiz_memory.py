@@ -1,55 +1,106 @@
 import json
 import re
 from datetime import datetime
+from urllib.parse import parse_qs
 
 from selenium.webdriver.common.by import By
 
 from app.config import QUIZ_MEMORY_FILE
+from app.quiz_review import QuestionReview, parse_question_reviews
 
 
 def normalize_question_text(text):
     text = (text or "").strip().lower()
     text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"\s+([?.!,;:])", r"\1", text)
     return text
+
+
+def extract_question_id(q_block):
+    try:
+        post_data = q_block.find_element(By.CSS_SELECTOR, ".questionflagpostdata")
+        parsed = parse_qs(post_data.get_attribute("value") or "")
+        qids = parsed.get("qid") or []
+        if qids:
+            return str(qids[0])
+    except Exception:
+        pass
+
+    try:
+        inputs = q_block.find_elements(By.CSS_SELECTOR, "input[value*='qid=']")
+        for input_el in inputs:
+            match = re.search(r"(?:^|&)qid=(\d+)", input_el.get_attribute("value") or "")
+            if match:
+                return match.group(1)
+    except Exception:
+        pass
+
+    return ""
 
 
 def load_quiz_memory():
     if not QUIZ_MEMORY_FILE.exists():
-        return {"scopes": {}}
+        return {"version": 2, "scopes": {}}
 
     try:
         with open(QUIZ_MEMORY_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             if isinstance(data, dict) and "scopes" in data:
+                data.setdefault("version", 1)
                 return data
     except Exception:
         pass
 
-    return {"scopes": {}}
+    return {"version": 2, "scopes": {}}
 
 
 def save_quiz_memory(memory):
+    memory["version"] = 2
     with open(QUIZ_MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(memory, f, ensure_ascii=False, indent=2)
 
 
-def _scope_key(course_name, test_name):
-    return f"{(course_name or '').strip()}|||{(test_name or '').strip()}"
-
-
-def get_confirmed_answer(course_name, test_name, question_text):
+def get_confirmed_answer(
+    course_name,
+    test_name,
+    question_text,
+    course_id="",
+    quiz_id="",
+    question_id="",
+):
     memory = load_quiz_memory()
-    scope = memory.get("scopes", {}).get(_scope_key(course_name, test_name), {})
-    question = scope.get("questions", {}).get(normalize_question_text(question_text), {})
-    return question.get("confirmed_answer")
+    scopes = memory.get("scopes", {})
 
+    scope_keys = [_scope_key(course_id, quiz_id, course_name, test_name)]
+    legacy_scope = f"{(course_name or '').strip()}|||{(test_name or '').strip()}"
+    if legacy_scope not in scope_keys:
+        scope_keys.append(legacy_scope)
 
-def record_review_results(driver, course_name, test_name):
+    question_keys = [_question_key(question_id, question_text)]
+    normalized_text = normalize_question_text(question_text)
+    for fallback in (f"text:{normalized_text}", normalized_text):
+        if fallback not in question_keys:
+            question_keys.append(fallback)
+
+    for scope_key in scope_keys:
+        questions = scopes.get(scope_key, {}).get("questions", {})
+        for question_key in question_keys:
+            confirmed = questions.get(question_key, {}).get("confirmed_answer")
+            if confirmed:
+                return confirmed
+
+    return None
+
+def record_review_results(driver, course_name, test_name, course_id="", quiz_id=""):
+    reviews = parse_question_reviews(driver.page_source)
     memory = load_quiz_memory()
     scopes = memory.setdefault("scopes", {})
+    scope_key = _scope_key(course_id, quiz_id, course_name, test_name)
     scope = scopes.setdefault(
-        _scope_key(course_name, test_name),
+        scope_key,
         {
+            "course_id": str(course_id or ""),
+            "quiz_id": str(quiz_id or ""),
             "course_name": course_name,
             "test_name": test_name,
             "updated_at": "",
@@ -58,198 +109,111 @@ def record_review_results(driver, course_name, test_name):
     )
     questions_store = scope.setdefault("questions", {})
 
-    question_blocks = driver.find_elements(By.CSS_SELECTOR, ".que")
     saved_count = 0
     confirmed_count = 0
+    new_confirmed_count = 0
 
-    for q_block in question_blocks:
-        try:
-            record = _parse_review_question(q_block)
-            if not record:
-                continue
+    for review in reviews:
+        question_key = _question_key(review.question_id, review.question_text)
+        existing = questions_store.get(question_key, {})
+        attempts = list(existing.get("attempts", []))
+        attempts.append(_attempt_payload(review))
+        attempts = attempts[-10:]
 
-            q_key = normalize_question_text(record["question_text"])
-            if not q_key:
-                continue
+        confirmed_answer = _build_confirmed_answer(review)
+        payload = {
+            "question_id": review.question_id,
+            "question_text": review.question_text,
+            "question_type": review.question_type,
+            "options": [option.__dict__ for option in review.options],
+            "updated_at": datetime.now().isoformat(timespec="seconds"),
+            "attempts": attempts,
+        }
 
-            existing = questions_store.get(q_key, {})
-            attempts = existing.get("attempts", [])
-            attempts.append(record["attempt"])
-            if len(attempts) > 10:
-                attempts = attempts[-10:]
+        if confirmed_answer:
+            payload["confirmed_answer"] = confirmed_answer
+            confirmed_count += 1
+            if not existing.get("confirmed_answer"):
+                new_confirmed_count += 1
+        elif existing.get("confirmed_answer"):
+            payload["confirmed_answer"] = existing["confirmed_answer"]
 
-            payload = {
-                "question_text": record["question_text"],
-                "question_type": record["question_type"],
-                "options": record["options"],
-                "updated_at": datetime.now().isoformat(timespec="seconds"),
-                "attempts": attempts,
-            }
-
-            if record.get("confirmed_answer"):
-                payload["confirmed_answer"] = record["confirmed_answer"]
-                confirmed_count += 1
-            elif existing.get("confirmed_answer"):
-                payload["confirmed_answer"] = existing["confirmed_answer"]
-
-            questions_store[q_key] = payload
-            saved_count += 1
-        except Exception:
-            continue
+        questions_store[question_key] = payload
+        saved_count += 1
 
     scope["updated_at"] = datetime.now().isoformat(timespec="seconds")
     save_quiz_memory(memory)
-    print(f"🧠 Память теста обновлена: {saved_count} вопросов, подтверждено {confirmed_count}.")
+    print(
+        f"🧠 Память теста обновлена: {saved_count} вопросов, "
+        f"подтверждено {confirmed_count}, новых {new_confirmed_count}."
+    )
+    return {
+        "saved_count": saved_count,
+        "confirmed_count": confirmed_count,
+        "new_confirmed_count": new_confirmed_count,
+    }
 
 
-def _parse_review_question(q_block):
-    q_text = q_block.find_element(By.CSS_SELECTOR, ".qtext").text.strip()
-    question_type = _detect_question_type(q_block)
-    score, max_score = _parse_grade_text(q_block)
+def _scope_key(course_id, quiz_id, course_name, test_name):
+    if course_id or quiz_id:
+        return f"course:{course_id or 'unknown'}|quiz:{quiz_id or 'unknown'}"
+    return f"{(course_name or '').strip()}|||{(test_name or '').strip()}"
 
-    options = []
-    selected_options = []
-    text_answer = ""
 
-    if question_type == "text":
-        try:
-            text_input = q_block.find_element(By.CSS_SELECTOR, "input[type='text']")
-            text_answer = (text_input.get_attribute("value") or "").strip()
-        except Exception:
-            text_answer = ""
-    else:
-        for index, opt in enumerate(q_block.find_elements(By.CSS_SELECTOR, ".answer div[class^='r']")):
-            try:
-                label_text = opt.text.strip()
-                key = ""
-                try:
-                    key = opt.find_element(By.CSS_SELECTOR, ".answernumber").text.lower().strip(" .)")
-                except Exception:
-                    key = f"opt_{index}"
+def _question_key(question_id, question_text):
+    if question_id:
+        return f"qid:{question_id}"
+    return f"text:{normalize_question_text(question_text)}"
 
-                input_el = opt.find_element(By.CSS_SELECTOR, "input")
-                checked = input_el.is_selected()
 
-                option_payload = {
-                    "key": key,
-                    "text": label_text,
-                    "checked": checked,
-                }
-                options.append(option_payload)
-                if checked:
-                    selected_options.append(option_payload)
-            except Exception:
-                continue
-
-    attempt = {
-        "score": score,
-        "max_score": max_score,
-        "selected_keys": [item["key"] for item in selected_options],
-        "selected_texts": [item["text"] for item in selected_options],
-        "text_answer": text_answer,
+def _attempt_payload(review):
+    return {
+        "score": review.score,
+        "max_score": review.max_score,
+        "selected_keys": [item.key for item in review.selected_options],
+        "selected_texts": [item.text for item in review.selected_options],
+        "text_answer": review.text_answer,
         "captured_at": datetime.now().isoformat(timespec="seconds"),
     }
 
-    confirmed_answer = _build_confirmed_answer(question_type, options, selected_options, text_answer, score, max_score)
 
-    return {
-        "question_text": q_text,
-        "question_type": question_type,
-        "options": options,
-        "attempt": attempt,
-        "confirmed_answer": confirmed_answer,
-    }
-
-
-def _detect_question_type(q_block):
-    if q_block.find_elements(By.CSS_SELECTOR, "input[type='text']"):
-        return "text"
-    if q_block.find_elements(By.TAG_NAME, "select"):
-        return "select"
-    if q_block.find_elements(By.CSS_SELECTOR, "input[type='checkbox']"):
-        return "checkbox"
-    if q_block.find_elements(By.CSS_SELECTOR, "input[type='radio']"):
-        return "radio"
-    return "unknown"
-
-
-def _parse_grade_text(q_block):
-    try:
-        grade_text = q_block.find_element(By.CSS_SELECTOR, ".grade").text.strip()
-    except Exception:
-        return None, None
-
-    match = re.search(r"([\d.,]+)\s+из\s+([\d.,]+)", grade_text)
-    if not match:
-        return None, None
-
-    return _to_float(match.group(1)), _to_float(match.group(2))
-
-
-def _to_float(value):
-    try:
-        return float(str(value).replace(" ", "").replace(",", "."))
-    except Exception:
+def _build_confirmed_answer(review: QuestionReview):
+    if review.score is None or review.max_score is None or review.max_score <= 0:
         return None
 
+    is_full = abs(review.score - review.max_score) < 1e-9
+    is_zero = abs(review.score) < 1e-9
+    selected = review.selected_options
 
-def _build_confirmed_answer(question_type, options, selected_options, text_answer, score, max_score):
-    if score is None or max_score is None:
+    if review.question_type == "text":
+        if is_full and review.text_answer:
+            return {"type": "text", "text": review.text_answer, "source": "full_score"}
         return None
 
-    if max_score <= 0:
-        return None
+    if review.question_type in {"radio", "select"} and is_full and selected:
+        return {
+            "type": review.question_type,
+            "keys": [selected[0].key],
+            "texts": [selected[0].text],
+            "source": "full_score",
+        }
 
-    is_full = abs(score - max_score) < 1e-9
-    is_zero = abs(score) < 1e-9
-
-    if question_type == "text":
-        if is_full and text_answer:
-            return {
-                "type": "text",
-                "text": text_answer,
-                "source": "full_score",
-            }
-        return None
-
-    if question_type == "select":
-        if is_full and selected_options:
-            return {
-                "type": "select",
-                "keys": [selected_options[0]["key"]],
-                "texts": [selected_options[0]["text"]],
-                "source": "full_score",
-            }
-        return None
-
-    if question_type == "radio":
-        if is_full and selected_options:
+    if review.question_type == "radio" and is_zero and len(review.options) == 2 and len(selected) == 1:
+        other = [option for option in review.options if option.key != selected[0].key]
+        if other:
             return {
                 "type": "radio",
-                "keys": [selected_options[0]["key"]],
-                "texts": [selected_options[0]["text"]],
-                "source": "full_score",
+                "keys": [other[0].key],
+                "texts": [other[0].text],
+                "source": "binary_inverse",
             }
 
-        if is_zero and len(options) == 2 and len(selected_options) == 1:
-            other = [item for item in options if item["key"] != selected_options[0]["key"]]
-            if other:
-                return {
-                    "type": "radio",
-                    "keys": [other[0]["key"]],
-                    "texts": [other[0]["text"]],
-                    "source": "binary_inverse",
-                }
-        return None
-
-    if question_type == "checkbox":
-        if is_full:
-            return {
-                "type": "checkbox",
-                "keys": [item["key"] for item in selected_options],
-                "texts": [item["text"] for item in selected_options],
-                "source": "full_score",
-            }
-        return None
+    if review.question_type == "checkbox" and is_full:
+        return {
+            "type": "checkbox",
+            "keys": [item.key for item in selected],
+            "texts": [item.text for item in selected],
+            "source": "full_score",
+        }
 
     return None

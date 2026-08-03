@@ -1,9 +1,7 @@
 import os
-import random
 from pathlib import Path
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 
 
 def _load_env_file(env_path: Path) -> None:
@@ -26,36 +24,24 @@ def _load_env_file(env_path: Path) -> None:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-DRIVERS_DIR = BASE_DIR / "drivers"
 ENV_PATH = BASE_DIR / ".env"
 
 DATA_DIR.mkdir(exist_ok=True)
-DRIVERS_DIR.mkdir(exist_ok=True)
 _load_env_file(ENV_PATH)
 
-USER_AGENT_FILE = DATA_DIR / "user_agent.txt"
 COOKIES_FILE = DATA_DIR / "moodle_cookies.pkl"
 STATS_FILE = DATA_DIR / "global_stats.json"
 BOT_HISTORY_FILE = DATA_DIR / "bot_history.log"
 QUIZ_MEMORY_FILE = DATA_DIR / "quiz_memory.json"
+DATABASE_FILE = DATA_DIR / "bot.db"
+LM_STUDIO_BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234").rstrip("/")
 
 options = webdriver.ChromeOptions()
-options.add_argument("-window-size=1590,950")
-options.binary_location = os.getenv(
-    "CHROME_BINARY_PATH",
-    r"C:\Users\NIKITA\Downloads\chrome-win64(1)\chrome-win64\chrome.exe",
-)
+options.add_argument("--window-size=1590,950")
 
-try:
-    with open(USER_AGENT_FILE, "r", encoding="utf-8") as f:
-        user_agents = [line.strip() for line in f if line.strip()]
-    rand_user_agent = random.choice(user_agents)
-    options.add_argument(f"user-agent={rand_user_agent}")
-except Exception:
-    rand_user_agent = "unknown"
-
-driver_path = os.getenv("CHROMEDRIVER_PATH", str(DRIVERS_DIR / "chromedriver.exe"))
-service = Service(driver_path)
+chrome_binary_path = os.getenv("CHROME_BINARY_PATH", "").strip()
+if chrome_binary_path:
+    options.binary_location = chrome_binary_path
 
 url_home_page = "https://lms.mitu.msk.ru/my/"
 url_login = "https://lms.mitu.msk.ru/login/index.php"

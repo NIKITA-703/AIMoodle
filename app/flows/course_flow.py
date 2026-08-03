@@ -56,7 +56,7 @@ def get_current_course_link(driver, ignore_urls=None):
         return None, None
 
 
-def find_current_test_info(driver, timeout=20):
+def find_current_test_info(driver, timeout=20, ignore_test_urls=None):
     """
     Находит первый тест, который нужно пройти:
     - невыполненный
@@ -64,6 +64,7 @@ def find_current_test_info(driver, timeout=20):
     - выполненный, но не набран проходной балл
     """
     wait = WebDriverWait(driver, timeout)
+    ignore_test_urls = ignore_test_urls or set()
 
     try:
         elem_course = wait.until(
@@ -92,6 +93,9 @@ def find_current_test_info(driver, timeout=20):
             completion_td = row.find_element(By.XPATH, ".//td[@data-mdl-overview-item='completion']")
             value = completion_td.get_attribute("data-mdl-overview-value")
             test_name, test_url, topic_name = _extract_test_row_info(row)
+
+            if test_url in ignore_test_urls:
+                continue
 
             if value == "0":
                 print(f"✅ Найден тест: {test_name}")
