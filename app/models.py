@@ -18,6 +18,27 @@ class QuizRequirements:
 
 
 @dataclass
+class QuestionResult:
+    question_id: str = ""
+    question_number: str = ""
+    question_type: str = "unknown"
+    question_text: str = ""
+    options: dict = field(default_factory=dict)
+    selected_keys: list = field(default_factory=list)
+    selected_texts: list = field(default_factory=list)
+    correct_keys: list = field(default_factory=list)
+    incorrect_keys: list = field(default_factory=list)
+    text_answer: str = ""
+    source: str = "general_knowledge"
+    evidence: str = ""
+    context_mode: str = "none"
+    response_time_sec: float = 0.0
+    score: Optional[float] = None
+    max_score: Optional[float] = None
+    outcome: str = "ungraded"
+
+
+@dataclass
 class QuizResult:
     submitted: bool = False
     passed: bool = False
@@ -35,5 +56,5 @@ class QuizResult:
             "general_knowledge": 0,
         }
     )
+    question_results: list[QuestionResult] = field(default_factory=list)
     error: str = ""
-

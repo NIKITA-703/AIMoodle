@@ -8,7 +8,14 @@ from selenium.common.exceptions import WebDriverException
 
 from app.ai_utils import check_ai_ready, clean_html_to_text, is_context_error_text, save_text_file
 from app.auth import login_on_mudl
-from app.config import options, url_home_page, url_login
+from app.config import (
+    AUTO_USE_LAST_ATTEMPT,
+    REQUIRE_LECTURE_CONTEXT,
+    TESTS_LIMIT,
+    options,
+    url_home_page,
+    url_login,
+)
 from app.flows.course_flow import find_current_test_info, get_current_course_link
 from app.flows.lecture_flow import (
     find_lecture_url,
@@ -17,7 +24,13 @@ from app.flows.lecture_flow import (
     save_page_html,
     try_get_lecture_via_breadcrumbs,
 )
-from app.flows.test_flow import get_quiz_requirements, solve_active_test, start_test_attempt
+from app.flows.test_flow import (
+    collect_previous_attempt_review,
+    get_quiz_requirements,
+    has_current_attempt,
+    solve_active_test,
+    start_test_attempt,
+)
 from app.stats import finish_run, format_duration, get_global_stats, record_attempt, start_run
 
 
@@ -27,8 +40,10 @@ def run():
     ignored_courses = set()
     ignored_tests = set()
     passed_this_run = 0
+    submitted_attempts_this_run = 0
     errors_count = 0
-    tests_limit = 13
+    # Maximum number of quiz attempts submitted to Moodle during this run.
+    tests_limit = TESTS_LIMIT
     start_time_total = time.time()
 
     stats = get_global_stats()
@@ -64,7 +79,7 @@ def run():
         except Exception:
             pass
 
-        while passed_this_run < tests_limit:
+        while submitted_attempts_this_run < tests_limit:
             print(f"\n🔎 Ищем активный курс (пропущено: {len(ignored_courses)})...\n")
             course_url, course_name = get_current_course_link(driver, ignore_urls=ignored_courses)
 
@@ -100,6 +115,17 @@ def run():
             driver.get(test_url)
             requirements = get_quiz_requirements(driver, course_id=course_id, quiz_id=quiz_id)
             _print_requirements(requirements)
+            previous_review = collect_previous_attempt_review(
+                driver,
+                course_name=course_name,
+                test_name=test_name,
+                requirements=requirements,
+            )
+            if previous_review and previous_review.get("new_confirmed_count", 0):
+                print(
+                    f"🧠 Из прошлой попытки получено новых "
+                    f"подтверждённых ответов: {previous_review['new_confirmed_count']}"
+                )
 
             if not lecture_text:
                 print("⚠️ Лекция не найдена на главной. Пробуем через навигацию теста...")
@@ -118,6 +144,35 @@ def run():
                 print(f"🧠 Контекст лекции подготовлен: {len(lecture_text)} символов.")
             else:
                 print("🤷 Лекция отсутствует. Ответы будут помечены как общие знания.")
+
+            if not lecture_text and REQUIRE_LECTURE_CONTEXT and not has_current_attempt(driver):
+                print(
+                    "🛑 Новый тест не запускаем: не удалось подготовить "
+                    "проверенный контекст лекции."
+                )
+                ignored_tests.add(test_url)
+                driver.get(url_home_page)
+                continue
+            if not lecture_text and REQUIRE_LECTURE_CONTEXT:
+                print(
+                    "⚠️ Попытка уже запущена, поэтому продолжаем без лекции, "
+                    "чтобы Moodle не отправил её по таймеру."
+                )
+
+            is_last_retry = (
+                requirements.allowed_attempts is not None
+                and requirements.attempt_number is not None
+                and requirements.attempt_number > 1
+                and requirements.attempt_number >= requirements.allowed_attempts
+                and not has_current_attempt(driver)
+            )
+            if is_last_retry and not AUTO_USE_LAST_ATTEMPT:
+                print(
+                    "🛑 Осталась последняя повторная попытка. "
+                    "Автозапуск заблокирован; ответы из обзора уже сохранены. "
+                    "Запуск бота остановлен."
+                )
+                break
 
             if not start_test_attempt(driver):
                 ignored_tests.add(test_url)
@@ -144,13 +199,25 @@ def run():
                 started_at=attempt_started_at,
             )
 
+            if result.submitted:
+                submitted_attempts_this_run += 1
+                print(
+                    f"📝 Отправлено попыток за запуск: "
+                    f"{submitted_attempts_this_run}/{tests_limit}"
+                )
+
+            stop_requested = False
             if result.passed:
                 passed_this_run += 1
-                print(f"✅ Успешно пройдено за запуск: {passed_this_run}/{tests_limit}")
+                print(f"✅ Успешно пройдено за запуск: {passed_this_run}")
             else:
-                _handle_failed_result(result, test_url, ignored_tests)
+                stop_requested = _handle_failed_result(result, test_url, ignored_tests)
                 if result.error:
                     errors_count += 1
+
+            if stop_requested:
+                print("⏸️ Запуск остановлен: последняя попытка требует ручного решения.")
+                break
 
             print("🔙 На главную...")
             driver.get(url_home_page)
@@ -217,7 +284,7 @@ def _handle_failed_result(result, test_url, ignored_tests):
     if result.error:
         print(f"❌ Попытка не завершена: {result.error}")
         ignored_tests.add(test_url)
-        return
+        return False
 
     grade = "неизвестно" if result.grade_percent is None else f"{result.grade_percent:.2f}%"
     print(f"📉 Тест не пройден. Оценка: {grade}")
@@ -225,6 +292,10 @@ def _handle_failed_result(result, test_url, ignored_tests):
     if result.remaining_attempts == 0:
         print("⛔ Попытки закончились; тест пропускается в этой сессии.")
         ignored_tests.add(test_url)
+    elif result.remaining_attempts == 1 and not AUTO_USE_LAST_ATTEMPT:
+        print("🛑 Последнюю попытку оставляем для ручного подтверждения.")
+        ignored_tests.add(test_url)
+        return True
     elif result.new_confirmed_answers <= 0:
         print("⏸️ Обзор не дал новых подтверждённых ответов; повторять ту же попытку сейчас не будем.")
         ignored_tests.add(test_url)
@@ -233,6 +304,8 @@ def _handle_failed_result(result, test_url, ignored_tests):
             f"🔁 Получено новых подтверждённых ответов: {result.new_confirmed_answers}. "
             "Тест можно перепройти."
         )
+
+    return False
 
 
 def _print_requirements(requirements):
@@ -255,6 +328,14 @@ def _print_start_stats(stats):
         print(f"📊 Средняя оценка: {stats['average_grade']:.2f}%")
     print(f"⏳ Время в тестах: {format_duration(stats['total_test_time_sec'])}")
     print(f"⚡ Общее время работы: {format_duration(stats['total_uptime_sec'])}")
+    if stats["total_questions"]:
+        print(
+            f"🧮 Ответы: {stats['correct_questions']} верных, "
+            f"{stats['partial_questions']} частичных, "
+            f"{stats['incorrect_questions']} неверных, "
+            f"{stats['unanswered_questions']} без ответа, "
+            f"{stats['ungraded_questions']} без оценки"
+        )
     if stats["legacy_tests"]:
         print(
             f"ℹ️ Старые данные до перехода на БД: {stats['legacy_tests']} тестов, "

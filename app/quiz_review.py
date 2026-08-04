@@ -13,6 +13,7 @@ class ReviewOption:
     key: str
     text: str
     checked: bool = False
+    correct: Optional[bool] = None
 
 
 @dataclass
@@ -24,6 +25,7 @@ class QuestionReview:
     max_score: Optional[float]
     options: list[ReviewOption] = field(default_factory=list)
     text_answer: str = ""
+    status: str = "unknown"
 
     @property
     def selected_options(self):
@@ -136,6 +138,7 @@ def parse_review_summary(html):
 def parse_question_reviews(html):
     soup = BeautifulSoup(html, "html.parser")
     reviews = []
+    navigation_statuses = _navigation_statuses(soup)
 
     for block in soup.select(".que"):
         qtext = block.select_one(".qtext")
@@ -166,7 +169,14 @@ def parse_question_reviews(html):
                 number = option_block.select_one(".answernumber")
                 key = _clean_option_key(_text_of(number)) or f"opt_{index}"
                 text = option_block.get_text(" ", strip=True)
-                options.append(ReviewOption(key, text, input_el.has_attr("checked")))
+                options.append(
+                    ReviewOption(
+                        key,
+                        text,
+                        input_el.has_attr("checked"),
+                        _option_correctness(option_block),
+                    )
+                )
 
         reviews.append(
             QuestionReview(
@@ -177,6 +187,7 @@ def parse_question_reviews(html):
                 max_score=max_score,
                 options=options,
                 text_answer=text_answer,
+                status=navigation_statuses.get(block.get("id") or "", _block_status(block)),
             )
         )
 
@@ -213,6 +224,51 @@ def _detect_question_type(block):
 
 def _clean_option_key(text):
     return (text or "").lower().strip(" .)")
+
+
+def _option_correctness(option_block):
+    classes = set(option_block.get("class") or [])
+    if "incorrect" in classes:
+        return False
+    if "correct" in classes:
+        return True
+
+    marker = option_block.select_one("[aria-label], [title]")
+    if marker:
+        label = " ".join(
+            filter(None, [marker.get("aria-label", ""), marker.get("title", "")])
+        ).strip().lower()
+        if "неверно" in label:
+            return False
+        if "верно" in label:
+            return True
+    return None
+
+
+def _navigation_statuses(soup):
+    statuses = {}
+    for button in soup.select("a.qnbutton[href^='#question-']"):
+        target = (button.get("href") or "").lstrip("#")
+        if target:
+            statuses[target] = _status_from_classes(button.get("class") or [])
+    return statuses
+
+
+def _block_status(block):
+    return _status_from_classes(block.get("class") or [])
+
+
+def _status_from_classes(classes):
+    classes = set(classes)
+    if "partiallycorrect" in classes:
+        return "partial"
+    if "notanswered" in classes:
+        return "not_answered"
+    if "incorrect" in classes:
+        return "incorrect"
+    if "correct" in classes:
+        return "correct"
+    return "unknown"
 
 
 def _text_of(tag):

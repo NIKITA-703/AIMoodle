@@ -48,8 +48,41 @@ def initialize_database():
                 error TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (run_id) REFERENCES runs(id)
             );
+
+            CREATE TABLE IF NOT EXISTS question_results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                attempt_id INTEGER NOT NULL,
+                question_id TEXT NOT NULL DEFAULT '',
+                question_number TEXT NOT NULL DEFAULT '',
+                question_type TEXT NOT NULL DEFAULT 'unknown',
+                question_text TEXT NOT NULL,
+                options_json TEXT NOT NULL DEFAULT '{}',
+                selected_keys_json TEXT NOT NULL DEFAULT '[]',
+                selected_texts_json TEXT NOT NULL DEFAULT '[]',
+                correct_keys_json TEXT NOT NULL DEFAULT '[]',
+                incorrect_keys_json TEXT NOT NULL DEFAULT '[]',
+                text_answer TEXT NOT NULL DEFAULT '',
+                source TEXT NOT NULL DEFAULT 'general_knowledge',
+                evidence TEXT NOT NULL DEFAULT '',
+                context_mode TEXT NOT NULL DEFAULT 'none',
+                response_time_sec REAL NOT NULL DEFAULT 0,
+                score REAL,
+                max_score REAL,
+                outcome TEXT NOT NULL DEFAULT 'ungraded',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (attempt_id) REFERENCES attempts(id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_question_results_attempt
+                ON question_results(attempt_id);
+            CREATE INDEX IF NOT EXISTS idx_question_results_qid
+                ON question_results(question_id);
+            CREATE INDEX IF NOT EXISTS idx_question_results_outcome
+                ON question_results(outcome);
             """
         )
+        _ensure_column(connection, "question_results", "correct_keys_json", "TEXT NOT NULL DEFAULT '[]'")
+        _ensure_column(connection, "question_results", "incorrect_keys_json", "TEXT NOT NULL DEFAULT '[]'")
 
 
 def start_run():
@@ -79,7 +112,7 @@ def finish_run(run_id, uptime_sec, errors_count=0):
 def record_attempt(run_id, course_name, test_name, result, duration_sec, started_at=None):
     source_counts = result.source_counts or {}
     with _connect() as connection:
-        connection.execute(
+        cursor = connection.execute(
             """
             INSERT INTO attempts(
                 run_id, course_name, test_name, attempt_number,
@@ -112,6 +145,41 @@ def record_attempt(run_id, course_name, test_name, result, duration_sec, started
                 result.error or "",
             ),
         )
+        attempt_id = cursor.lastrowid
+        for question in result.question_results or []:
+            connection.execute(
+                """
+                INSERT INTO question_results(
+                    attempt_id, question_id, question_number, question_type,
+                    question_text, options_json, selected_keys_json,
+                    selected_texts_json, correct_keys_json, incorrect_keys_json,
+                    text_answer, source, evidence,
+                    context_mode, response_time_sec, score, max_score,
+                    outcome, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    attempt_id,
+                    question.question_id or "",
+                    question.question_number or "",
+                    question.question_type or "unknown",
+                    question.question_text or "",
+                    json.dumps(question.options or {}, ensure_ascii=False),
+                    json.dumps(question.selected_keys or [], ensure_ascii=False),
+                    json.dumps(question.selected_texts or [], ensure_ascii=False),
+                    json.dumps(question.correct_keys or [], ensure_ascii=False),
+                    json.dumps(question.incorrect_keys or [], ensure_ascii=False),
+                    question.text_answer or "",
+                    question.source or "general_knowledge",
+                    question.evidence or "",
+                    question.context_mode or "none",
+                    float(question.response_time_sec or 0),
+                    question.score,
+                    question.max_score,
+                    question.outcome or "ungraded",
+                    _now(),
+                ),
+            )
 
 
 def get_global_stats():
@@ -135,6 +203,18 @@ def get_global_stats():
         runs = connection.execute(
             "SELECT COALESCE(SUM(uptime_sec), 0) AS total_uptime_sec FROM runs"
         ).fetchone()
+        questions = connection.execute(
+            """
+            SELECT
+                COUNT(*) AS total_questions,
+                COALESCE(SUM(CASE WHEN outcome = 'correct' THEN 1 ELSE 0 END), 0) AS correct_questions,
+                COALESCE(SUM(CASE WHEN outcome = 'partial' THEN 1 ELSE 0 END), 0) AS partial_questions,
+                COALESCE(SUM(CASE WHEN outcome = 'incorrect' THEN 1 ELSE 0 END), 0) AS incorrect_questions,
+                COALESCE(SUM(CASE WHEN outcome = 'not_answered' THEN 1 ELSE 0 END), 0) AS unanswered_questions,
+                COALESCE(SUM(CASE WHEN outcome = 'ungraded' THEN 1 ELSE 0 END), 0) AS ungraded_questions
+            FROM question_results
+            """
+        ).fetchone()
 
     legacy = _load_legacy_stats()
     return {
@@ -148,6 +228,12 @@ def get_global_stats():
         "lecture_answers": attempts["lecture_answers"],
         "memory_answers": attempts["memory_answers"],
         "general_answers": attempts["general_answers"],
+        "total_questions": questions["total_questions"],
+        "correct_questions": questions["correct_questions"],
+        "partial_questions": questions["partial_questions"],
+        "incorrect_questions": questions["incorrect_questions"],
+        "unanswered_questions": questions["unanswered_questions"],
+        "ungraded_questions": questions["ungraded_questions"],
         "legacy_tests": int(legacy.get("total_tests", 0) or 0),
         "legacy_uptime_sec": float(legacy.get("total_uptime_sec", 0) or 0),
     }
@@ -157,6 +243,17 @@ def _connect():
     connection = sqlite3.connect(DATABASE_FILE)
     connection.row_factory = sqlite3.Row
     return connection
+
+
+def _ensure_column(connection, table_name, column_name, declaration):
+    columns = {
+        row["name"]
+        for row in connection.execute(f"PRAGMA table_info({table_name})").fetchall()
+    }
+    if column_name not in columns:
+        connection.execute(
+            f"ALTER TABLE {table_name} ADD COLUMN {column_name} {declaration}"
+        )
 
 
 def _load_legacy_stats():

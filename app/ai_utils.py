@@ -69,6 +69,52 @@ def clean_html_to_text(file_path):
             soup = BeautifulSoup(f.read(), "html.parser")
         print("   [DEBUG] HTML загружен в BeautifulSoup")
 
+        content_selectors = [
+            # mod/lesson
+            "#intro .no-overflow",
+            "#intro",
+            ".activity-description .no-overflow",
+            ".activity-description",
+            # mod/page
+            ".main-content .generalbox .no-overflow",
+            ".main-content .no-overflow",
+            # mod/book and common Moodle fallbacks
+            ".book_content",
+            ".main-content",
+            "#region-main [role='main']",
+            "#region-main",
+            "main",
+            "body",
+        ]
+        main_content = None
+        content_selector = ""
+        for selector in content_selectors:
+            candidate = soup.select_one(selector)
+            if candidate is None:
+                continue
+            candidate_text = _normalize_text(candidate.get_text(separator="\n"))
+            block_count = len(candidate.find_all(["p", "li", "h1", "h2", "h3", "h4"]))
+            if len(candidate_text) >= 300 and block_count >= 2:
+                main_content = candidate
+                content_selector = selector
+                break
+
+        if main_content is None:
+            for selector in content_selectors:
+                candidate = soup.select_one(selector)
+                if candidate is not None:
+                    main_content = candidate
+                    content_selector = selector
+                    break
+        if not main_content:
+            return "❌ Ошибка: Не найден основной контент"
+
+        page_title_tag = soup.select_one("#page-header h1")
+        page_title = _normalize_text(page_title_tag.get_text(" ")) if page_title_tag else ""
+        print(f"   [DEBUG] Контейнер лекции: {content_selector}")
+        if page_title:
+            print(f"   [DEBUG] Заголовок страницы: {page_title[:160]}")
+
         garbage_selectors = [
             "script",
             "style",
@@ -79,7 +125,6 @@ def clean_html_to_text(file_path):
             "header",
             "form",
             ".activity-navigation",
-            ".activity-header",
             ".rui-breadcrumbs",
             ".tertiary-navigation",
             ".urlselect",
@@ -88,14 +133,10 @@ def clean_html_to_text(file_path):
         ]
         count_deleted = 0
         for selector in garbage_selectors:
-            for tag in soup.select(selector):
+            for tag in main_content.select(selector):
                 tag.decompose()
                 count_deleted += 1
         print(f"   [DEBUG] Удалено мусорных блоков: {count_deleted}")
-
-        main_content = soup.find(id="region-main") or soup.find(role="main") or soup.body
-        if not main_content:
-            return "❌ Ошибка: Не найден основной контент"
 
         inline_tags = ["b", "strong", "i", "em", "u", "span", "a", "font", "mark", "small"]
         for tag_name in inline_tags:
@@ -103,6 +144,13 @@ def clean_html_to_text(file_path):
                 tag.unwrap()
 
         clean_text = _normalize_text(main_content.get_text(separator="\n"))
+        if page_title and page_title.lower() not in clean_text[:1000].lower():
+            clean_text = _normalize_text(f"{page_title}\n{clean_text}")
+        if len(clean_text) < 300 or is_context_error_text(clean_text):
+            return (
+                f"❌ Ошибка: контейнер '{content_selector}' не содержит "
+                f"полноценного текста лекции ({len(clean_text)} символов)"
+            )
         print(f"   [DEBUG] Текст сформирован. Длина: {len(clean_text)} символов")
         return clean_text
     except Exception as e:
@@ -123,7 +171,12 @@ def save_text_file(text, source_path):
 
 
 def is_context_error_text(text):
-    return bool(text) and text.lstrip().startswith("❌")
+    if not text:
+        return False
+    normalized = " ".join(text.lower().split())
+    return text.lstrip().startswith("❌") or (
+        "эта лекция ещё не готова к использованию" in normalized and len(normalized) < 500
+    )
 
 
 def is_ai_error_text(text):

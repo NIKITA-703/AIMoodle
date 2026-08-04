@@ -1,7 +1,7 @@
 import json
 import re
 from datetime import datetime
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from selenium.webdriver.common.by import By
 
@@ -107,13 +107,31 @@ def record_review_results(driver, course_name, test_name, course_id="", quiz_id=
             "questions": {},
         },
     )
+    attempt_id = _review_attempt_id(driver)
+    captured_attempt_ids = scope.setdefault("captured_attempt_ids", [])
+    if attempt_id and attempt_id in captured_attempt_ids:
+        print(f"⏭️ Попытка {attempt_id} уже сохранена в памяти.")
+        return {
+            "saved_count": 0,
+            "confirmed_count": 0,
+            "new_confirmed_count": 0,
+            "already_captured": True,
+        }
     questions_store = scope.setdefault("questions", {})
 
     saved_count = 0
     confirmed_count = 0
     new_confirmed_count = 0
+    status_counts = {
+        "correct": 0,
+        "partial": 0,
+        "incorrect": 0,
+        "not_answered": 0,
+        "unknown": 0,
+    }
 
     for review in reviews:
+        status_counts[review.status if review.status in status_counts else "unknown"] += 1
         question_key = _question_key(review.question_id, review.question_text)
         existing = questions_store.get(question_key, {})
         attempts = list(existing.get("attempts", []))
@@ -141,17 +159,37 @@ def record_review_results(driver, course_name, test_name, course_id="", quiz_id=
         questions_store[question_key] = payload
         saved_count += 1
 
+    if attempt_id and reviews:
+        captured_attempt_ids.append(attempt_id)
+        scope["captured_attempt_ids"] = captured_attempt_ids[-20:]
     scope["updated_at"] = datetime.now().isoformat(timespec="seconds")
     save_quiz_memory(memory)
     print(
         f"🧠 Память теста обновлена: {saved_count} вопросов, "
         f"подтверждено {confirmed_count}, новых {new_confirmed_count}."
     )
+    if reviews:
+        print(
+            f"📋 Обзор: {status_counts['correct']} верных, "
+            f"{status_counts['partial']} частичных, "
+            f"{status_counts['incorrect']} неверных, "
+            f"{status_counts['not_answered']} без ответа."
+        )
     return {
         "saved_count": saved_count,
         "confirmed_count": confirmed_count,
         "new_confirmed_count": new_confirmed_count,
+        "already_captured": False,
+        "status_counts": status_counts,
     }
+
+
+def _review_attempt_id(driver):
+    try:
+        values = parse_qs(urlparse(driver.current_url).query).get("attempt") or []
+        return str(values[0]) if values else ""
+    except Exception:
+        return ""
 
 
 def _scope_key(course_id, quiz_id, course_name, test_name):
@@ -168,22 +206,49 @@ def _question_key(question_id, question_text):
 
 def _attempt_payload(review):
     return {
+        "status": review.status,
         "score": review.score,
         "max_score": review.max_score,
         "selected_keys": [item.key for item in review.selected_options],
         "selected_texts": [item.text for item in review.selected_options],
+        "correct_keys": [item.key for item in review.options if item.correct is True],
+        "incorrect_keys": [item.key for item in review.options if item.correct is False],
+        "correct_texts": [item.text for item in review.options if item.correct is True],
+        "incorrect_texts": [item.text for item in review.options if item.correct is False],
         "text_answer": review.text_answer,
         "captured_at": datetime.now().isoformat(timespec="seconds"),
     }
 
 
 def _build_confirmed_answer(review: QuestionReview):
-    if review.score is None or review.max_score is None or review.max_score <= 0:
-        return None
-
-    is_full = abs(review.score - review.max_score) < 1e-9
-    is_zero = abs(review.score) < 1e-9
+    explicitly_correct = [item for item in review.options if item.correct is True]
+    has_score = review.score is not None and review.max_score is not None and review.max_score > 0
+    is_full = has_score and abs(review.score - review.max_score) < 1e-9
+    is_zero = has_score and abs(review.score) < 1e-9
+    is_fully_correct = is_full or review.status == "correct"
     selected = review.selected_options
+
+    # A radio question has one correct choice, so explicit Moodle feedback is conclusive.
+    if review.question_type in {"radio", "select"} and explicitly_correct:
+        return {
+            "type": review.question_type,
+            "keys": [explicitly_correct[0].key],
+            "texts": [explicitly_correct[0].text],
+            "source": "review_feedback",
+        }
+
+    # In a partial checkbox review Moodle may mark only the selected correct choices.
+    # Such a subset must never replace a previously confirmed complete answer.
+    if review.question_type == "checkbox" and is_fully_correct and explicitly_correct:
+        return {
+            "type": "checkbox",
+            "keys": [item.key for item in explicitly_correct],
+            "texts": [item.text for item in explicitly_correct],
+            "source": "review_feedback",
+        }
+
+    if not has_score:
+        return None
 
     if review.question_type == "text":
         if is_full and review.text_answer:
@@ -208,7 +273,7 @@ def _build_confirmed_answer(review: QuestionReview):
                 "source": "binary_inverse",
             }
 
-    if review.question_type == "checkbox" and is_full:
+    if review.question_type == "checkbox" and is_fully_correct:
         return {
             "type": "checkbox",
             "keys": [item.key for item in selected],

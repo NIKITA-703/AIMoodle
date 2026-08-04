@@ -42,11 +42,10 @@ def get_current_course_link(driver, ignore_urls=None):
                 name = link_el.text.strip()
                 state_text = state_el.text.strip()
 
-                print(f"Имя курса: {name}")
-                print(f"Статус курса: {state_text}")
-                print(f"URL курса: {url}")
-
                 if url not in ignore_urls:
+                    print(f"Имя курса: {name}")
+                    print(f"Статус курса: {state_text}")
+                    print(f"URL курса: {url}")
                     return url, name
             except Exception:
                 continue

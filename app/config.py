@@ -35,6 +35,16 @@ BOT_HISTORY_FILE = DATA_DIR / "bot_history.log"
 QUIZ_MEMORY_FILE = DATA_DIR / "quiz_memory.json"
 DATABASE_FILE = DATA_DIR / "bot.db"
 LM_STUDIO_BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234").rstrip("/")
+AUTO_USE_LAST_ATTEMPT = os.getenv("AUTO_USE_LAST_ATTEMPT", "false").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+REQUIRE_LECTURE_CONTEXT = os.getenv("REQUIRE_LECTURE_CONTEXT", "false").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+try:
+    TESTS_LIMIT = max(1, int(os.getenv("TESTS_LIMIT", "1")))
+except ValueError:
+    TESTS_LIMIT = 1
 
 options = webdriver.ChromeOptions()
 options.add_argument("--window-size=1590,950")

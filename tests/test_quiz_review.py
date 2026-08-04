@@ -64,6 +64,28 @@ TEXT_AND_SELECT_REVIEW_HTML = """
 """
 
 
+EXPLICIT_FEEDBACK_HTML = """
+<div class="qn_buttons allquestionsononepage">
+  <a class="qnbutton partiallycorrect" href="#question-feedback">Вопрос 1</a>
+  <a class="qnbutton notanswered" href="#question-missing">Вопрос 2</a>
+</div>
+<div id="question-feedback" class="que multichoice">
+  <div class="grade">Баллов: 0,75 из 1,00</div>
+  <input class="questionflagpostdata" value="qid=90001&amp;slot=1">
+  <div class="qtext">Какие каналы существуют?</div>
+  <div class="answer">
+    <div class="r0 incorrect"><input type="checkbox" checked><span class="answernumber">a.</span> Ложный</div>
+    <div class="r1 correct"><input type="checkbox" checked><span class="answernumber">b.</span> Акустический</div>
+    <div class="r0 correct"><input type="checkbox"><span class="answernumber">c.</span> Визуальный</div>
+  </div>
+</div>
+<div id="question-missing" class="que shortanswer">
+  <div class="qtext">Вопрос без ответа</div>
+  <input type="text" value="">
+</div>
+"""
+
+
 def test_parse_requirements_for_new_attempt():
     requirements = parse_quiz_requirements(REQUIREMENTS_HTML, course_id="74", quiz_id="6143")
 
@@ -108,3 +130,13 @@ def test_parse_text_and_select_questions():
     assert [question.question_type for question in questions] == ["text", "select"]
     assert questions[0].text_answer == "тенденция"
     assert questions[1].selected_options[0].text == "Да"
+
+
+def test_parse_explicit_correct_and_incorrect_options():
+    questions = parse_question_reviews(EXPLICIT_FEEDBACK_HTML)
+    question = questions[0]
+
+    assert [option.key for option in question.options if option.correct is True] == ["b", "c"]
+    assert [option.key for option in question.options if option.correct is False] == ["a"]
+    assert question.status == "partial"
+    assert questions[1].status == "not_answered"
