@@ -26,6 +26,8 @@ def test_coordinator_assigns_one_test_from_each_distinct_course(monkeypatch):
     }
 
     monkeypatch.setattr(runner, "get_active_course_links", lambda _driver: courses)
+    monkeypatch.setattr(runner, "mark_course_tests_complete", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(runner, "clear_course_test_status", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         runner,
         "find_current_test_info",
@@ -36,6 +38,19 @@ def test_coordinator_assigns_one_test_from_each_distinct_course(monkeypatch):
 
     assert [item.course_name for item in assignments] == ["Курс 2", "Курс 3"]
     assert len({item.course_url for item in assignments}) == 2
+
+
+def test_course_filter_prefers_exact_name_and_rejects_ambiguous_partial():
+    courses = [
+        ("course-1", "Архитектура информационных систем ч.1", "active"),
+        ("course-2", "Архитектура информационных систем ч.2", "active"),
+    ]
+
+    exact = runner._filter_courses(courses, "Архитектура информационных систем ч.2")
+    ambiguous = runner._filter_courses(courses, "Архитектура информационных систем")
+
+    assert [item[0] for item in exact] == ["course-2"]
+    assert ambiguous == []
 
 
 def test_parallel_runner_starts_each_assignment_once(monkeypatch):

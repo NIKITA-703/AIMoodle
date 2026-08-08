@@ -122,6 +122,7 @@ def test_parse_review_questions_and_qid():
     assert questions[0].selected_options[0].key == "b"
     assert questions[1].score == 0.5
     assert [option.key for option in questions[1].selected_options] == ["a", "b"]
+    assert [question.status for question in questions] == ["correct", "partial", "incorrect"]
 
 
 def test_parse_text_and_select_questions():

@@ -17,8 +17,11 @@ from app.config import (
     AI_MAX_CONCURRENT_REQUESTS,
     AI_RESPONSE_ATTEMPTS,
     BOT_VERSION,
+    COURSE_CACHE_DAYS,
     PARALLEL_WORKERS,
+    REFRESH_COMPLETED_COURSES,
     REQUIRE_LECTURE_CONTEXT,
+    TARGET_COURSE,
     TESTS_LIMIT,
     options,
     url_home_page,
@@ -28,7 +31,6 @@ from app.control import is_stop_requested, reset_stop
 from app.flows.course_flow import (
     find_current_test_info,
     get_active_course_links,
-    get_current_course_link,
 )
 from app.flows.lecture_flow import (
     find_lecture_urls,
@@ -45,7 +47,16 @@ from app.flows.test_flow import (
     start_test_attempt,
 )
 from app.models import QuizResult
-from app.stats import finish_run, format_duration, get_global_stats, record_attempt, start_run
+from app.stats import (
+    clear_course_test_status,
+    finish_run,
+    format_duration,
+    get_cached_completed_course_urls,
+    get_global_stats,
+    mark_course_tests_complete,
+    record_attempt,
+    start_run,
+)
 
 
 _DRIVER_CREATION_LOCK = threading.Lock()
@@ -92,7 +103,12 @@ class AttemptBudget:
                 self.claimed = max(0, self.claimed - 1)
 
 
-def run(tests_limit=None, parallel_workers=None):
+def run(
+    tests_limit=None,
+    parallel_workers=None,
+    target_course=None,
+    refresh_courses=None,
+):
     reset_stop()
     driver = None
     run_id = None
@@ -108,6 +124,17 @@ def run(tests_limit=None, parallel_workers=None):
         if parallel_workers is None
         else min(4, max(1, int(parallel_workers)))
     )
+    target_course = TARGET_COURSE if target_course is None else str(target_course).strip()
+    refresh_courses = (
+        REFRESH_COMPLETED_COURSES
+        if refresh_courses is None
+        else bool(refresh_courses)
+    )
+    completed_course_urls = (
+        set()
+        if refresh_courses
+        else get_cached_completed_course_urls(COURSE_CACHE_DAYS)
+    )
     start_time_total = time.time()
 
     stats = get_global_stats()
@@ -116,6 +143,13 @@ def run(tests_limit=None, parallel_workers=None):
         f"⚙️ Режим: worker={parallel_workers}, "
         f"общий лимит отправленных попыток={tests_limit}.\n"
     )
+    if target_course:
+        print(f"🎯 Выбран курс: {target_course}\n")
+    elif completed_course_urls:
+        print(
+            f"🗂️ Из БД пропускаем курсы без доступных тестов: "
+            f"{len(completed_course_urls)}.\n"
+        )
 
     ai_ready, ai_message = check_ai_ready()
     if not ai_ready:
@@ -135,6 +169,8 @@ def run(tests_limit=None, parallel_workers=None):
             "ai_max_concurrent_requests": AI_MAX_CONCURRENT_REQUESTS,
             "ai_response_attempts": AI_RESPONSE_ATTEMPTS,
             "ai_enable_thinking": AI_ENABLE_THINKING,
+            "target_course": target_course,
+            "refresh_courses": refresh_courses,
         },
     )
 
@@ -150,7 +186,12 @@ def run(tests_limit=None, parallel_workers=None):
 
         if parallel_workers > 1:
             worker_limit = min(parallel_workers, tests_limit)
-            assignments = _discover_course_assignments(driver, worker_limit)
+            assignments = _discover_course_assignments(
+                driver,
+                worker_limit,
+                target_course=target_course,
+                completed_course_urls=completed_course_urls,
+            )
             if not assignments:
                 print("🎉 Не найдено доступных тестов для параллельного запуска.")
                 return
@@ -170,7 +211,12 @@ def run(tests_limit=None, parallel_workers=None):
 
         while submitted_attempts_this_run < tests_limit and not is_stop_requested():
             print(f"\n🔎 Ищем активный курс (пропущено: {len(ignored_courses)})...\n")
-            course_url, course_name = get_current_course_link(driver, ignore_urls=ignored_courses)
+            course_url, course_name = _get_next_course_link(
+                driver,
+                ignored_courses,
+                completed_course_urls,
+                target_course=target_course,
+            )
 
             if not course_url:
                 print("🎉 Все доступные курсы обработаны.")
@@ -185,10 +231,16 @@ def run(tests_limit=None, parallel_workers=None):
 
             if not test_name or not test_url:
                 print(f"⚠️ В курсе '{course_name}' нет доступных тестов для этой сессии.")
+                mark_course_tests_complete(course_url, course_name)
+                completed_course_urls.add(course_url)
+                print("🗂️ Статус tests_complete записан в БД.")
                 ignored_courses.add(course_url)
                 driver.get(url_home_page)
                 time.sleep(2)
                 continue
+
+            clear_course_test_status(course_url)
+            completed_course_urls.discard(course_url)
 
             course_id = _query_id(course_url)
             quiz_id = _query_id(test_url)
@@ -350,14 +402,26 @@ def _open_authenticated_home(driver):
     return True
 
 
-def _discover_course_assignments(driver, limit):
+def _discover_course_assignments(
+    driver,
+    limit,
+    target_course="",
+    completed_course_urls=None,
+):
     """Find at most one available quiz in each distinct active course."""
     driver.get(url_home_page)
-    courses = get_active_course_links(driver)
+    courses = _filter_courses(
+        get_active_course_links(driver),
+        target_course=target_course,
+    )
+    completed_course_urls = set(completed_course_urls or ())
     assignments = []
 
     print(f"🧭 Координатор проверяет курсы для {limit} worker...")
     for course_url, course_name, state_text in courses:
+        if not target_course and course_url in completed_course_urls:
+            print(f"⏭️ Курс '{course_name}' уже отмечен tests_complete в БД.")
+            continue
         print(f"🔎 Проверяем курс: {course_name} ({state_text})")
         try:
             driver.get(course_url)
@@ -368,7 +432,10 @@ def _discover_course_assignments(driver, limit):
 
         if not test_name or not test_url:
             print(f"⏭️ В курсе '{course_name}' нет доступных тестов.")
+            mark_course_tests_complete(course_url, course_name)
             continue
+
+        clear_course_test_status(course_url)
 
         assignments.append(
             CourseAssignment(
@@ -621,6 +688,8 @@ def _find_next_course_assignment(driver, previous, ignored_tests):
     )
     if not test_name or not test_url:
         print(f"✅ В курсе '{previous.course_name}' больше нет доступных тестов.")
+        mark_course_tests_complete(previous.course_url, previous.course_name)
+        print("🗂️ Статус tests_complete записан в БД.")
         return None
     return CourseAssignment(
         course_url=previous.course_url,
@@ -629,6 +698,51 @@ def _find_next_course_assignment(driver, previous, ignored_tests):
         test_url=test_url,
         topic_name=topic_name,
     )
+
+
+def _get_next_course_link(
+    driver,
+    ignored_courses,
+    completed_course_urls,
+    target_course="",
+):
+    courses = _filter_courses(
+        get_active_course_links(driver, ignore_urls=ignored_courses),
+        target_course=target_course,
+    )
+    for course_url, course_name, state_text in courses:
+        if not target_course and course_url in completed_course_urls:
+            print(f"⏭️ Курс '{course_name}' уже отмечен tests_complete в БД.")
+            continue
+        print(f"Имя курса: {course_name}")
+        print(f"Статус курса: {state_text}")
+        print(f"URL курса: {course_url}")
+        return course_url, course_name
+
+    if target_course:
+        print(f"⚠️ Активный курс по фильтру '{target_course}' не найден.")
+    return None, None
+
+
+def _filter_courses(courses, target_course=""):
+    target = _normalize_course_name(target_course)
+    if not target:
+        return list(courses)
+
+    exact = [item for item in courses if _normalize_course_name(item[1]) == target]
+    if exact:
+        return exact
+
+    partial = [item for item in courses if target in _normalize_course_name(item[1])]
+    if len(partial) > 1:
+        names = ", ".join(item[1] for item in partial)
+        print(f"⚠️ Фильтр курса неоднозначен: {names}")
+        return []
+    return partial
+
+
+def _normalize_course_name(value):
+    return " ".join((value or "").casefold().split())
 
 
 def _create_driver():

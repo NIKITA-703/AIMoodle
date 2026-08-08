@@ -2,7 +2,7 @@ import json
 import hashlib
 import sqlite3
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app.config import (
     BASE_DIR,
@@ -13,7 +13,7 @@ from app.config import (
     STATS_FILE,
 )
 
-DATABASE_SCHEMA_VERSION = 2
+DATABASE_SCHEMA_VERSION = 3
 
 
 def format_duration(seconds):
@@ -127,6 +127,17 @@ def initialize_database():
 
             CREATE INDEX IF NOT EXISTS idx_lecture_contexts_hash
                 ON lecture_contexts(content_sha256);
+
+            CREATE TABLE IF NOT EXISTS course_test_status (
+                course_url TEXT PRIMARY KEY,
+                course_name TEXT NOT NULL,
+                status TEXT NOT NULL,
+                reason TEXT NOT NULL DEFAULT '',
+                checked_at TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_course_test_status_checked
+                ON course_test_status(status, checked_at);
             """
         )
         _ensure_column(connection, "runs", "bot_version_id", "INTEGER")
@@ -191,6 +202,60 @@ def finish_run(run_id, uptime_sec, errors_count=0):
             """,
             (_now(), float(uptime_sec or 0), int(errors_count or 0), run_id),
         )
+
+
+def mark_course_tests_complete(course_url, course_name, reason="no_available_tests"):
+    if not course_url:
+        return
+    initialize_database()
+    with _connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO course_test_status(
+                course_url, course_name, status, reason, checked_at
+            ) VALUES (?, ?, 'tests_complete', ?, ?)
+            ON CONFLICT(course_url) DO UPDATE SET
+                course_name = excluded.course_name,
+                status = excluded.status,
+                reason = excluded.reason,
+                checked_at = excluded.checked_at
+            """,
+            (course_url, course_name or "", reason or "", _now()),
+        )
+
+
+def clear_course_test_status(course_url):
+    if not course_url:
+        return
+    initialize_database()
+    with _connect() as connection:
+        connection.execute(
+            "DELETE FROM course_test_status WHERE course_url = ?",
+            (course_url,),
+        )
+
+
+def get_cached_completed_course_urls(max_age_days=30):
+    initialize_database()
+    cutoff = datetime.now() - timedelta(days=max(1, int(max_age_days or 1)))
+    with _connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT course_url, checked_at
+            FROM course_test_status
+            WHERE status = 'tests_complete'
+            """
+        ).fetchall()
+
+    result = set()
+    for row in rows:
+        try:
+            checked_at = datetime.fromisoformat(row["checked_at"])
+        except (TypeError, ValueError):
+            continue
+        if checked_at >= cutoff:
+            result.add(row["course_url"])
+    return result
 
 
 def record_attempt(
@@ -530,6 +595,7 @@ def _git_state():
         dirty = subprocess.run(
             ["git", "diff", "--quiet", "HEAD", "--"],
             cwd=BASE_DIR,
+            capture_output=True,
             timeout=3,
             check=False,
         ).returncode != 0

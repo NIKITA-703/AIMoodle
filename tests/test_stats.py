@@ -62,6 +62,20 @@ def test_sqlite_stats_separate_attempts_and_passed_tests(tmp_path, monkeypatch):
     assert json.loads(question["incorrect_keys_json"]) == ["b"]
 
 
+def test_course_completion_cache_is_persistent_and_clearable(tmp_path, monkeypatch):
+    monkeypatch.setattr(stats, "DATABASE_FILE", tmp_path / "bot.db")
+    monkeypatch.setattr(stats, "STATS_FILE", tmp_path / "missing.json")
+    course_url = "https://lms/course/view.php?id=74"
+
+    stats.mark_course_tests_complete(course_url, "Эконометрика")
+
+    assert stats.get_cached_completed_course_urls(30) == {course_url}
+
+    stats.clear_course_test_status(course_url)
+
+    assert stats.get_cached_completed_course_urls(30) == set()
+
+
 def test_question_analysis_groups_existing_results(tmp_path, monkeypatch):
     monkeypatch.setattr(stats, "DATABASE_FILE", tmp_path / "bot.db")
     monkeypatch.setattr(stats, "STATS_FILE", tmp_path / "missing.json")

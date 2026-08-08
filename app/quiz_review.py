@@ -178,6 +178,10 @@ def parse_question_reviews(html):
                     )
                 )
 
+        status = navigation_statuses.get(block.get("id") or "", _block_status(block))
+        if status == "unknown":
+            status = _status_from_score(score, max_score)
+
         reviews.append(
             QuestionReview(
                 question_id=question_id,
@@ -187,7 +191,7 @@ def parse_question_reviews(html):
                 max_score=max_score,
                 options=options,
                 text_answer=text_answer,
-                status=navigation_statuses.get(block.get("id") or "", _block_status(block)),
+                status=status,
             )
         )
 
@@ -269,6 +273,16 @@ def _status_from_classes(classes):
     if "correct" in classes:
         return "correct"
     return "unknown"
+
+
+def _status_from_score(score, max_score):
+    if score is None or max_score is None or max_score <= 0:
+        return "unknown"
+    if abs(score - max_score) < 1e-9:
+        return "correct"
+    if abs(score) < 1e-9:
+        return "incorrect"
+    return "partial"
 
 
 def _text_of(tag):

@@ -30,6 +30,19 @@ def test_long_lecture_selects_relevant_fragment():
     assert len(context) <= 18000
 
 
+def test_large_single_topic_uses_selected_context_before_model_limit():
+    lecture = ("CRM повышает результативность работы предприятия.\n" * 1000).strip()
+
+    context, mode = build_lecture_context(
+        lecture,
+        "Введение CRM-системы повышает результативность?",
+    )
+
+    assert len(lecture) > lecture_context.FULL_CONTEXT_LIMIT
+    assert mode == "selected"
+    assert len(context) <= lecture_context.SELECTED_CONTEXT_LIMIT
+
+
 def test_context_keeps_strong_matches_before_neighbour_chunks(monkeypatch):
     chunks = [(f"NOISE_{index} " + "обычный текст " * 180) for index in range(8)]
     chunks.extend(

@@ -2,6 +2,7 @@ import json
 import os
 import re
 import threading
+from collections import Counter
 from dataclasses import dataclass, field
 
 import requests
@@ -15,31 +16,48 @@ from app.lecture_context import build_lecture_context
 
 _AI_REQUEST_SEMAPHORE = threading.BoundedSemaphore(AI_MAX_CONCURRENT_REQUESTS)
 
-_ANSWER_RESPONSE_FORMAT = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "quiz_answer",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "properties": {
-                "answers": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "maxItems": 10,
+def _answer_response_format(question_type, allowed_keys=None):
+    allowed_keys = list(dict.fromkeys(allowed_keys or []))
+    is_text = question_type == "text"
+    is_single_choice = question_type in {"radio", "select"}
+
+    answer_items = {"type": "string"}
+    if allowed_keys:
+        answer_items["enum"] = allowed_keys
+
+    answers_schema = {
+        "type": "array",
+        "items": answer_items,
+        "minItems": 0 if is_text else 1,
+        "maxItems": 0 if is_text else (1 if is_single_choice else max(len(allowed_keys), 1)),
+    }
+    text_schema = (
+        {"type": "string", "minLength": 1}
+        if is_text
+        else {"type": "string", "enum": [""]}
+    )
+
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "quiz_answer",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "answers": answers_schema,
+                    "text": text_schema,
+                    "source": {
+                        "type": "string",
+                        "enum": ["lecture", "general_knowledge"],
+                    },
+                    "evidence": {"type": "string"},
                 },
-                "text": {"type": "string"},
-                "source": {
-                    "type": "string",
-                    "enum": ["lecture", "general_knowledge"],
-                },
-                "evidence": {"type": "string"},
+                "required": ["answers", "text", "source", "evidence"],
+                "additionalProperties": False,
             },
-            "required": ["answers", "text", "source", "evidence"],
-            "additionalProperties": False,
         },
-    },
-}
+    }
 
 
 @dataclass
@@ -232,6 +250,25 @@ def is_ai_error_text(text):
     )
 
 
+def is_retryable_ai_error(text):
+    lowered = (text or "").lower()
+    return any(
+        marker in lowered
+        for marker in (
+            "read timed out",
+            "connect timed out",
+            "connection aborted",
+            "connection reset",
+            "temporarily unavailable",
+            "ошибка сервера: 429",
+            "ошибка сервера: 500",
+            "ошибка сервера: 502",
+            "ошибка сервера: 503",
+            "ошибка сервера: 504",
+        )
+    )
+
+
 def ask_ai_question_data(
     question,
     options,
@@ -239,6 +276,7 @@ def ask_ai_question_data(
     question_type="unknown",
     answer_hint="",
     context_strategy="focused",
+    allowed_keys=None,
 ):
     url = f"{LM_STUDIO_BASE_URL}/v1/chat/completions"
     lecture_context, context_mode = build_lecture_context(
@@ -264,7 +302,24 @@ def ask_ai_question_data(
     )
 
     options_text = options or "ВАРИАНТОВ НЕТ. Это вопрос на ввод текста."
-    hint_block = f"\n### ПОДСКАЗКА ПО ФОРМАТУ:\n{answer_hint}\n" if answer_hint else ""
+    allowed_keys = list(dict.fromkeys(allowed_keys or []))
+    format_instructions = answer_hint
+    if question_type != "text" and allowed_keys:
+        required_count = "ровно один" if question_type in {"radio", "select"} else "один или несколько"
+        format_instructions = " ".join(
+            part
+            for part in (
+                answer_hint,
+                f"Поле answers обязано содержать {required_count} ключ из списка: "
+                f"{', '.join(allowed_keys)}. Поле text оставь пустым.",
+            )
+            if part
+        )
+    hint_block = (
+        f"\n### ОБЯЗАТЕЛЬНЫЙ ФОРМАТ ОТВЕТА:\n{format_instructions}\n"
+        if format_instructions
+        else ""
+    )
     lecture_block = lecture_context if has_lecture else "Лекция отсутствует. Разрешено использовать общие знания."
 
     user_message = f"""
@@ -291,7 +346,7 @@ def ask_ai_question_data(
         ],
         "temperature": 0.1,
         "max_tokens": 1200 if AI_ENABLE_THINKING else 300,
-        "response_format": _ANSWER_RESPONSE_FORMAT,
+        "response_format": _answer_response_format(question_type, allowed_keys),
     }
 
     try:
@@ -457,7 +512,26 @@ def _evidence_in_context(evidence, context):
         return False
     normalized_evidence = re.sub(r"\s+", " ", evidence).strip().lower()
     normalized_context = re.sub(r"\s+", " ", context).lower()
-    return len(normalized_evidence) >= 12 and normalized_evidence in normalized_context
+    if len(normalized_evidence) >= 12 and normalized_evidence in normalized_context:
+        return True
+
+    # Moodle extraction often splits words across lines, while the model joins them
+    # or slightly changes inflections. A high token overlap still identifies lecture evidence.
+    evidence_tokens = _evidence_tokens(normalized_evidence)
+    if len(evidence_tokens) < 6:
+        return False
+    context_counts = Counter(_evidence_tokens(normalized_context))
+    evidence_counts = Counter(evidence_tokens)
+    matched = sum(min(count, context_counts[token]) for token, count in evidence_counts.items())
+    return matched / len(evidence_tokens) >= 0.8
+
+
+def _evidence_tokens(text):
+    return [
+        token[:5]
+        for token in re.findall(r"[a-zа-яё0-9]+", (text or "").lower())
+        if len(token) >= 4
+    ]
 
 
 def _extract_chat_content(result):

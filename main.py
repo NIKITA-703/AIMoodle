@@ -28,6 +28,16 @@ def parse_args():
         help="общий максимум отправленных попыток за запуск",
     )
     parser.add_argument(
+        "--course",
+        help="точное имя или уникальная часть имени курса",
+    )
+    parser.add_argument(
+        "--refresh-courses",
+        action="store_true",
+        default=None,
+        help="перепроверить курсы, ранее отмеченные как не имеющие доступных тестов",
+    )
+    parser.add_argument(
         "--stats-report",
         "--stats",
         action="store_true",
@@ -56,6 +66,11 @@ if __name__ == "__main__":
 
         signal.signal(signal.SIGINT, handle_interrupt)
         try:
-            run(tests_limit=args.tests, parallel_workers=args.workers)
+            run(
+                tests_limit=args.tests,
+                parallel_workers=args.workers,
+                target_course=args.course,
+                refresh_courses=args.refresh_courses,
+            )
         finally:
             signal.signal(signal.SIGINT, previous_handler)

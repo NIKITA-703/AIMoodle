@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 ENV_PATH = BASE_DIR / ".env"
 
-BOT_VERSION = "3.1.1"
+BOT_VERSION = "3.2.0"
 MEMORY_VERSION = "review-v2"
 CONTEXT_VERSION = "lexical-v2-progressive"
 
@@ -39,6 +39,7 @@ BOT_HISTORY_FILE = DATA_DIR / "bot_history.log"
 QUIZ_MEMORY_FILE = DATA_DIR / "quiz_memory.json"
 DATABASE_FILE = DATA_DIR / "bot.db"
 LM_STUDIO_BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234").rstrip("/")
+TARGET_COURSE = os.getenv("TARGET_COURSE", "").strip()
 AUTO_USE_LAST_ATTEMPT = os.getenv("AUTO_USE_LAST_ATTEMPT", "false").strip().lower() in {
     "1", "true", "yes", "on"
 }
@@ -48,6 +49,13 @@ REQUIRE_LECTURE_CONTEXT = os.getenv("REQUIRE_LECTURE_CONTEXT", "false").strip().
 AI_ENABLE_THINKING = os.getenv("AI_ENABLE_THINKING", "false").strip().lower() in {
     "1", "true", "yes", "on"
 }
+REFRESH_COMPLETED_COURSES = os.getenv(
+    "REFRESH_COMPLETED_COURSES", "false"
+).strip().lower() in {"1", "true", "yes", "on"}
+try:
+    COURSE_CACHE_DAYS = max(1, int(os.getenv("COURSE_CACHE_DAYS", "30")))
+except ValueError:
+    COURSE_CACHE_DAYS = 30
 try:
     TESTS_LIMIT = max(1, int(os.getenv("TESTS_LIMIT", "1")))
 except ValueError:

@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-from app.ai_utils import ask_ai_question_data, normalize_text_answer
+from app.ai_utils import ask_ai_question_data, is_retryable_ai_error, normalize_text_answer
 from app.config import AI_RESPONSE_ATTEMPTS, BOT_HISTORY_FILE
 from app.control import StopRequested, ensure_running
 from app.models import QuestionResult, QuizRequirements, QuizResult
@@ -489,6 +489,7 @@ def _answer_question_block(
         variants_str = "\n".join(options_text)
         allowed_keys = [key for key in options_map if key != "text_input"]
 
+        expanded_context = False
         for ai_attempt in range(1, AI_RESPONSE_ATTEMPTS + 1):
             ensure_running()
             retry_hint = answer_hint
@@ -511,9 +512,20 @@ def _answer_question_block(
                 lecture_text,
                 question_type=question_type,
                 answer_hint=retry_hint,
-                context_strategy="expanded" if ai_attempt > 1 else "focused",
+                context_strategy="expanded" if expanded_context else "focused",
+                allowed_keys=allowed_keys,
             )
             if ai_result.error:
+                if (
+                    ai_attempt < AI_RESPONSE_ATTEMPTS
+                    and is_retryable_ai_error(ai_result.error)
+                ):
+                    print(
+                        "🔌 Временная ошибка LM Studio. "
+                        f"Повтор {ai_attempt + 1}/{AI_RESPONSE_ATTEMPTS} через 3 сек..."
+                    )
+                    time.sleep(3)
+                    continue
                 raise AIServiceError(ai_result.error)
             ensure_running()
 
@@ -538,6 +550,7 @@ def _answer_question_block(
                     break
 
             if ai_attempt < AI_RESPONSE_ATTEMPTS:
+                expanded_context = True
                 print(
                     "🔄 Ответ ИИ не распознан. "
                     f"Повтор {ai_attempt + 1}/{AI_RESPONSE_ATTEMPTS}..."
