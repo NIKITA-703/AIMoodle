@@ -1,14 +1,45 @@
 import json
 import os
 import re
+import threading
 from dataclasses import dataclass, field
 
 import requests
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 
-from app.config import LM_STUDIO_BASE_URL
+from app.config import AI_ENABLE_THINKING, AI_MAX_CONCURRENT_REQUESTS, LM_STUDIO_BASE_URL
+from app.control import StopRequested, ensure_running
 from app.lecture_context import build_lecture_context
+
+
+_AI_REQUEST_SEMAPHORE = threading.BoundedSemaphore(AI_MAX_CONCURRENT_REQUESTS)
+
+_ANSWER_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "quiz_answer",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "maxItems": 10,
+                },
+                "text": {"type": "string"},
+                "source": {
+                    "type": "string",
+                    "enum": ["lecture", "general_knowledge"],
+                },
+                "evidence": {"type": "string"},
+            },
+            "required": ["answers", "text", "source", "evidence"],
+            "additionalProperties": False,
+        },
+    },
+}
 
 
 @dataclass
@@ -20,6 +51,16 @@ class AIQuestionResult:
     evidence: str = ""
     context_mode: str = "none"
     error: str = ""
+
+
+def _post_ai_request(url, payload, timeout):
+    while not _AI_REQUEST_SEMAPHORE.acquire(timeout=0.2):
+        ensure_running()
+    try:
+        ensure_running()
+        return requests.post(url, json=payload, timeout=timeout)
+    finally:
+        _AI_REQUEST_SEMAPHORE.release()
 
 
 def _normalize_text(raw_text):
@@ -191,9 +232,21 @@ def is_ai_error_text(text):
     )
 
 
-def ask_ai_question_data(question, options, lecture_text, question_type="unknown", answer_hint=""):
+def ask_ai_question_data(
+    question,
+    options,
+    lecture_text,
+    question_type="unknown",
+    answer_hint="",
+    context_strategy="focused",
+):
     url = f"{LM_STUDIO_BASE_URL}/v1/chat/completions"
-    lecture_context, context_mode = build_lecture_context(lecture_text, question, options)
+    lecture_context, context_mode = build_lecture_context(
+        lecture_text,
+        question,
+        options,
+        strategy=context_strategy,
+    )
     has_lecture = bool(lecture_context)
 
     system_prompt = (
@@ -228,6 +281,7 @@ def ask_ai_question_data(question, options, lecture_text, question_type="unknown
 {options_text}
 
 Верни только JSON с итоговым ответом.
+{"/think" if AI_ENABLE_THINKING else "/no_think"}
 """
 
     payload = {
@@ -236,11 +290,12 @@ def ask_ai_question_data(question, options, lecture_text, question_type="unknown
             {"role": "user", "content": user_message},
         ],
         "temperature": 0.1,
-        "max_tokens": 1200,
+        "max_tokens": 1200 if AI_ENABLE_THINKING else 300,
+        "response_format": _ANSWER_RESPONSE_FORMAT,
     }
 
     try:
-        response = requests.post(url, json=payload, timeout=180)
+        response = _post_ai_request(url, payload, timeout=90)
         if response.status_code != 200:
             body = response.text.strip()[:300]
             error = f"Ошибка сервера: {response.status_code}"
@@ -248,12 +303,21 @@ def ask_ai_question_data(question, options, lecture_text, question_type="unknown
                 error += f" | {body}"
             return AIQuestionResult(context_mode=context_mode, error=error)
 
-        raw_content = _extract_chat_content(response.json())
+        response_data = response.json()
+        raw_content = _extract_chat_content(response_data)
         if not isinstance(raw_content, str) or not raw_content.strip():
             return AIQuestionResult(context_mode=context_mode, error="Пустой ответ LM Studio")
 
+        if _extract_finish_reason(response_data) == "length":
+            return AIQuestionResult(
+                raw_text=raw_content,
+                context_mode=context_mode,
+            )
+
         clean_content = re.sub(r"<think>.*?</think>", "", raw_content, flags=re.DOTALL).strip()
         return _parse_ai_result(clean_content, question_type, lecture_context, context_mode)
+    except StopRequested:
+        raise
     except Exception as e:
         return AIQuestionResult(context_mode=context_mode, error=f"Ошибка соединения: {e}")
 
@@ -299,18 +363,20 @@ def normalize_text_answer(question, raw_answer, answer_hint=""):
             {"role": "user", "content": user_message},
         ],
         "temperature": 0.0,
-        "max_tokens": 256,
+        "max_tokens": 128,
     }
     fallback = re.sub(r"\s*\([^)]*\)", "", raw_answer).strip().strip('"').strip("'").strip(".")
 
     try:
-        response = requests.post(url, json=payload, timeout=60)
+        response = _post_ai_request(url, payload, timeout=60)
         if response.status_code == 200:
             raw_content = _extract_chat_content(response.json())
             if isinstance(raw_content, str):
                 clean = re.sub(r"<think>.*?</think>", "", raw_content, flags=re.DOTALL).strip()
                 clean = re.sub(r"\s*\([^)]*\)", "", clean).strip().strip('"').strip("'").strip(".")
                 return clean or fallback
+    except StopRequested:
+        raise
     except Exception:
         pass
     return fallback
@@ -410,3 +476,11 @@ def _extract_chat_content(result):
     except Exception:
         return None
     return None
+
+
+def _extract_finish_reason(result):
+    try:
+        choices = result.get("choices") or []
+        return str((choices[0] or {}).get("finish_reason") or "").lower()
+    except Exception:
+        return ""

@@ -10,7 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 from app.ai_utils import ask_ai_question_data, normalize_text_answer
-from app.config import BOT_HISTORY_FILE
+from app.config import AI_RESPONSE_ATTEMPTS, BOT_HISTORY_FILE
+from app.control import StopRequested, ensure_running
 from app.models import QuestionResult, QuizRequirements, QuizResult
 from app.quiz_memory import extract_question_id, get_confirmed_answer, record_review_results
 from app.quiz_review import parse_question_reviews, parse_quiz_requirements, parse_review_summary
@@ -151,6 +152,7 @@ def solve_active_test(
 
     while True:
         try:
+            ensure_running()
             time.sleep(2)
 
             if not driver.find_elements(By.CSS_SELECTOR, ".que") and driver.find_elements(
@@ -172,6 +174,7 @@ def solve_active_test(
                 return result
 
             for q_block in question_blocks:
+                ensure_running()
                 question_result = _answer_question_block(
                     driver,
                     q_block,
@@ -218,6 +221,10 @@ def solve_active_test(
         except (AIServiceError, AnswerResolutionError) as e:
             result.error = str(e)
             print(f"🛑 Решение остановлено без отправки теста: {e}")
+            return result
+        except StopRequested as e:
+            result.error = str(e)
+            print("⏹️ Решение остановлено без отправки теста.")
             return result
         except Exception as e:
             result.error = str(e)
@@ -401,6 +408,7 @@ def _answer_question_block(
     test_name="",
     requirements=None,
 ):
+    ensure_running()
     decision_started = time.perf_counter()
     requirements = requirements or QuizRequirements()
     q_text = q_block.find_element(By.CSS_SELECTOR, ".qtext").text.strip()
@@ -481,7 +489,8 @@ def _answer_question_block(
         variants_str = "\n".join(options_text)
         allowed_keys = [key for key in options_map if key != "text_input"]
 
-        for ai_attempt in range(1, 4):
+        for ai_attempt in range(1, AI_RESPONSE_ATTEMPTS + 1):
+            ensure_running()
             retry_hint = answer_hint
             if ai_attempt > 1:
                 retry_hint = " ".join(
@@ -502,9 +511,11 @@ def _answer_question_block(
                 lecture_text,
                 question_type=question_type,
                 answer_hint=retry_hint,
+                context_strategy="expanded" if ai_attempt > 1 else "focused",
             )
             if ai_result.error:
                 raise AIServiceError(ai_result.error)
+            ensure_running()
 
             source = ai_result.source
             evidence = ai_result.evidence
@@ -526,8 +537,11 @@ def _answer_question_block(
                         target_keys = [options_map[target_keys[0]]]
                     break
 
-            if ai_attempt < 3:
-                print(f"🔄 Ответ ИИ не распознан. Повтор {ai_attempt + 1}/3...")
+            if ai_attempt < AI_RESPONSE_ATTEMPTS:
+                print(
+                    "🔄 Ответ ИИ не распознан. "
+                    f"Повтор {ai_attempt + 1}/{AI_RESPONSE_ATTEMPTS}..."
+                )
 
         if evidence:
             print(f"📖 Основание: {evidence[:180]}")
@@ -541,8 +555,9 @@ def _answer_question_block(
         print(f"🤖 Ответ: '{text_answer}'")
     elif question_type == "select":
         if not target_keys:
-            target_keys = list(options_map.values())[:1]
-            print("⚠️ ИИ не определил select после 3 попыток. Используем первый вариант.")
+            raise AnswerResolutionError(
+                f"Вопрос {question_label}: ИИ не определил вариант select"
+            )
         select_obj.select_by_visible_text(target_keys[0])
         print(f"🤖 Выбран вариант: {target_keys[0]}")
     else:
@@ -550,11 +565,9 @@ def _answer_question_block(
             target_keys = target_keys[:1]
         target_keys = list(dict.fromkeys(target_keys))
         if not target_keys:
-            fallback_count = 2 if question_type == "checkbox" and len(options_map) >= 2 else 1
-            target_keys = list(options_map)[:fallback_count]
-            print(
-                "⚠️ ИИ не определил ответ после 3 попыток. "
-                f"Используем запасной выбор: {target_keys}."
+            raise AnswerResolutionError(
+                f"Вопрос {question_label}: ИИ не определил вариант ответа "
+                f"после {AI_RESPONSE_ATTEMPTS} попыток"
             )
 
         for key in target_keys:

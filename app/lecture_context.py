@@ -6,6 +6,8 @@ from collections import Counter
 FULL_CONTEXT_LIMIT = 45000
 SELECTED_CONTEXT_LIMIT = 18000
 PRIMARY_CHUNK_LIMIT = 4
+EXPANDED_CONTEXT_LIMIT = 36000
+EXPANDED_PRIMARY_CHUNK_LIMIT = 10
 CHUNK_SIZE = 2600
 CHUNK_OVERLAP = 350
 
@@ -32,7 +34,7 @@ STOP_WORDS = {
 }
 
 
-def build_lecture_context(lecture_text, question, options=""):
+def build_lecture_context(lecture_text, question, options="", strategy="focused"):
     text = (lecture_text or "").strip()
     if not text:
         return "", "none"
@@ -40,10 +42,16 @@ def build_lecture_context(lecture_text, question, options=""):
     if len(text) <= FULL_CONTEXT_LIMIT:
         return text, "full"
 
+    expanded = strategy == "expanded"
+    context_limit = EXPANDED_CONTEXT_LIMIT if expanded else SELECTED_CONTEXT_LIMIT
+    primary_limit = EXPANDED_PRIMARY_CHUNK_LIMIT if expanded else PRIMARY_CHUNK_LIMIT
+    selected_mode = "expanded" if expanded else "selected"
+    truncated_mode = "expanded_truncated" if expanded else "truncated"
+
     chunks = split_text(text)
     query_terms = _tokenize(f"{question}\n{options}")
     if not chunks or not query_terms:
-        return text[:SELECTED_CONTEXT_LIMIT], "truncated"
+        return text[:context_limit], truncated_mode
 
     document_terms = [_tokenize(chunk) for chunk in chunks]
     document_frequency = Counter()
@@ -68,9 +76,9 @@ def build_lecture_context(lecture_text, question, options=""):
         index
         for score, index in sorted(scores, reverse=True)
         if score > 0
-    ][:PRIMARY_CHUNK_LIMIT]
+    ][:primary_limit]
     if not best:
-        return text[:SELECTED_CONTEXT_LIMIT], "truncated"
+        return text[:context_limit], truncated_mode
 
     # Put every strongest match before its neighbours. With a bounded context this
     # prevents an early neighbour from displacing a stronger fragment later in the file.
@@ -89,12 +97,12 @@ def build_lecture_context(lecture_text, question, options=""):
         if not chunk:
             continue
         labelled = f"\n\n### Фрагмент лекции {index + 1}\n{chunk}"
-        if total_length + len(labelled) > SELECTED_CONTEXT_LIMIT:
+        if total_length + len(labelled) > context_limit:
             break
         selected.append(labelled)
         total_length += len(labelled)
 
-    return "".join(selected).strip(), "selected"
+    return "".join(selected).strip(), selected_mode
 
 
 def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):

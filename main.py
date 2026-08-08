@@ -1,5 +1,8 @@
 import argparse
+import os
+import signal
 
+from app.control import is_stop_requested, request_stop
 from app.runner import run
 from app.stats import print_question_analysis
 
@@ -38,4 +41,21 @@ if __name__ == "__main__":
     if args.stats_report:
         print_question_analysis()
     else:
-        run(tests_limit=args.tests, parallel_workers=args.workers)
+        previous_handler = signal.getsignal(signal.SIGINT)
+
+        def handle_interrupt(_signum, _frame):
+            if is_stop_requested():
+                print("\nПринудительная остановка.")
+                os._exit(130)
+            request_stop()
+            print(
+                "\nОстановка запрошена. Бот завершит текущий запрос ИИ, "
+                "не отправит тест и закроет браузеры. "
+                "Нажмите Ctrl+C ещё раз для принудительной остановки."
+            )
+
+        signal.signal(signal.SIGINT, handle_interrupt)
+        try:
+            run(tests_limit=args.tests, parallel_workers=args.workers)
+        finally:
+            signal.signal(signal.SIGINT, previous_handler)

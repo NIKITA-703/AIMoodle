@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 ENV_PATH = BASE_DIR / ".env"
 
-BOT_VERSION = "3.1.0"
+BOT_VERSION = "3.1.1"
 MEMORY_VERSION = "review-v2"
-CONTEXT_VERSION = "lexical-v1"
+CONTEXT_VERSION = "lexical-v2-progressive"
 
 DATA_DIR.mkdir(exist_ok=True)
 _load_env_file(ENV_PATH)
@@ -45,6 +45,9 @@ AUTO_USE_LAST_ATTEMPT = os.getenv("AUTO_USE_LAST_ATTEMPT", "false").strip().lowe
 REQUIRE_LECTURE_CONTEXT = os.getenv("REQUIRE_LECTURE_CONTEXT", "false").strip().lower() in {
     "1", "true", "yes", "on"
 }
+AI_ENABLE_THINKING = os.getenv("AI_ENABLE_THINKING", "false").strip().lower() in {
+    "1", "true", "yes", "on"
+}
 try:
     TESTS_LIMIT = max(1, int(os.getenv("TESTS_LIMIT", "1")))
 except ValueError:
@@ -53,6 +56,16 @@ try:
     PARALLEL_WORKERS = min(4, max(1, int(os.getenv("PARALLEL_WORKERS", "1"))))
 except ValueError:
     PARALLEL_WORKERS = 1
+try:
+    AI_MAX_CONCURRENT_REQUESTS = min(
+        4, max(1, int(os.getenv("AI_MAX_CONCURRENT_REQUESTS", "1")))
+    )
+except ValueError:
+    AI_MAX_CONCURRENT_REQUESTS = 1
+try:
+    AI_RESPONSE_ATTEMPTS = min(3, max(1, int(os.getenv("AI_RESPONSE_ATTEMPTS", "2"))))
+except ValueError:
+    AI_RESPONSE_ATTEMPTS = 2
 
 options = webdriver.ChromeOptions()
 options.add_argument("--window-size=1590,950")

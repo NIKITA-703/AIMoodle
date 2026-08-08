@@ -13,6 +13,9 @@ from app.ai_utils import check_ai_ready, clean_html_to_text, is_context_error_te
 from app.auth import login_on_mudl
 from app.config import (
     AUTO_USE_LAST_ATTEMPT,
+    AI_ENABLE_THINKING,
+    AI_MAX_CONCURRENT_REQUESTS,
+    AI_RESPONSE_ATTEMPTS,
     BOT_VERSION,
     PARALLEL_WORKERS,
     REQUIRE_LECTURE_CONTEXT,
@@ -21,6 +24,7 @@ from app.config import (
     url_home_page,
     url_login,
 )
+from app.control import is_stop_requested, reset_stop
 from app.flows.course_flow import (
     find_current_test_info,
     get_active_course_links,
@@ -89,6 +93,7 @@ class AttemptBudget:
 
 
 def run(tests_limit=None, parallel_workers=None):
+    reset_stop()
     driver = None
     run_id = None
     ignored_courses = set()
@@ -127,6 +132,9 @@ def run(tests_limit=None, parallel_workers=None):
             "parallel_workers": parallel_workers,
             "auto_use_last_attempt": AUTO_USE_LAST_ATTEMPT,
             "require_lecture_context": REQUIRE_LECTURE_CONTEXT,
+            "ai_max_concurrent_requests": AI_MAX_CONCURRENT_REQUESTS,
+            "ai_response_attempts": AI_RESPONSE_ATTEMPTS,
+            "ai_enable_thinking": AI_ENABLE_THINKING,
         },
     )
 
@@ -160,7 +168,7 @@ def run(tests_limit=None, parallel_workers=None):
             )
             return
 
-        while submitted_attempts_this_run < tests_limit:
+        while submitted_attempts_this_run < tests_limit and not is_stop_requested():
             print(f"\n🔎 Ищем активный курс (пропущено: {len(ignored_courses)})...\n")
             course_url, course_name = get_current_course_link(driver, ignore_urls=ignored_courses)
 
@@ -385,10 +393,11 @@ def _run_parallel_workers(assignments, run_id, tests_limit=None):
         f"отдельный Chrome на курс, общий лимит {budget.limit} попыток."
     )
     outcomes = []
-    with ThreadPoolExecutor(
+    executor = ThreadPoolExecutor(
         max_workers=len(assignments),
         thread_name_prefix="course-worker",
-    ) as executor:
+    )
+    try:
         futures = {
             executor.submit(_course_worker, index, assignment, run_id, budget): assignment
             for index, assignment in enumerate(assignments, start=1)
@@ -410,6 +419,11 @@ def _run_parallel_workers(assignments, run_id, tests_limit=None):
                 f"🏁 Worker {outcome.worker_id} ({outcome.course_name}): "
                 f"отправлено {outcome.submitted}, успешно {outcome.passed}."
             )
+    finally:
+        executor.shutdown(
+            wait=not is_stop_requested(),
+            cancel_futures=is_stop_requested(),
+        )
 
     return outcomes
 
@@ -434,7 +448,7 @@ def _course_worker(worker_id, assignment, run_id, budget):
         ignored_tests = set()
         lecture_text = None
 
-        while current_assignment and budget.reserve():
+        while current_assignment and not is_stop_requested() and budget.reserve():
             print(f"{prefix} Открываем тест: {current_assignment.test_name}")
             result, lecture_text = _execute_assigned_attempt(
                 driver,
@@ -448,6 +462,13 @@ def _course_worker(worker_id, assignment, run_id, budget):
             outcome.passed += int(result.passed)
             outcome.errors += int(bool(result.error))
             outcome.message = result.error
+
+            if is_stop_requested():
+                break
+
+            if result.error:
+                print(f"{prefix} Останавливаем worker: {result.error}")
+                break
 
             if result.submitted and not result.passed and _can_retry_result(result):
                 print(
@@ -658,8 +679,7 @@ def _load_lecture_text(driver, course_name, test_name, topic_name):
 def _handle_failed_result(result, test_url, ignored_tests):
     if result.error:
         print(f"❌ Попытка не завершена: {result.error}")
-        ignored_tests.add(test_url)
-        return False
+        return True
 
     grade = "неизвестно" if result.grade_percent is None else f"{result.grade_percent:.2f}%"
     print(f"📉 Тест не пройден. Оценка: {grade}")

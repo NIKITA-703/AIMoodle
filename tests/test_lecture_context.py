@@ -55,6 +55,23 @@ def test_context_keeps_strong_matches_before_neighbour_chunks(monkeypatch):
     )
 
 
+def test_expanded_retry_uses_more_relevant_chunks(monkeypatch):
+    chunks = [f"MATCH_{index} alpha " + "текст " * 400 for index in range(12)]
+    monkeypatch.setattr(lecture_context, "split_text", lambda _text: chunks)
+
+    focused, focused_mode = build_lecture_context("x" * 50000, "alpha")
+    expanded, expanded_mode = build_lecture_context(
+        "x" * 50000,
+        "alpha",
+        strategy="expanded",
+    )
+
+    assert focused_mode == "selected"
+    assert expanded_mode == "expanded"
+    assert len(expanded) > len(focused)
+    assert len(expanded) <= lecture_context.EXPANDED_CONTEXT_LIMIT
+
+
 def test_final_context_skips_unavailable_lecture_placeholder(tmp_path, monkeypatch):
     course_folder = tmp_path / "HTML Courses" / "Курс"
     course_folder.mkdir(parents=True)

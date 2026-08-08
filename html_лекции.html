@@ -1,539 +1,946 @@
-<div id="region-main-box" class="region-main-wrapper">
-                        <div class="rui-breadcrumbs wrapper-page d-print-none">
-        <div id="page-navbar" class="breadcrumbs-container">
-            <nav aria-label="Панель навигации">
-    <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="https://lms.mitu.msk.ru/my/"><span class="text-truncate">Личный кабинет</span></a>
-                </li>
-        
-                <li class="breadcrumb-item">
-                    <a href="https://lms.mitu.msk.ru/course/index.php"><span class="text-truncate">Курсы</span></a>
-                </li>
-        
-                <li class="breadcrumb-item">
-                    <a href="https://lms.mitu.msk.ru/course/view.php?id=359" title="Системы программирования на языке Python ч.1"><span class="text-truncate">Системы программирования на языке Python ч.1</span></a>
-                </li>
-        
-                <li class="breadcrumb-item">
-                    <a href="https://lms.mitu.msk.ru/course/section.php?id=11073"><span class="text-truncate">Тема 1. Краткая история Python , его особенности и типы данных</span></a>
-                </li>
-        
-                <li class="breadcrumb-item">
-                    <a href="https://lms.mitu.msk.ru/mod/page/view.php?id=17541" aria-current="page" title="Страница"><span class="text-truncate">Лекция 1.3. Краткая история Python , его особенности и типы данных. Часть 3</span></a>
-                </li>
-        </ol>
-</nav>
-        </div>
-      </div>
-                        
-
-
-                            <div class="wrapper-xxl">
-                                <section id="ctopbl" data-region="ctopbl" class="rui-blocks-area">
-                                    <aside id="block-region-ctopbl" class="block-region" data-blockregion="ctopbl" data-droptarget="1" aria-labelledby="ctopbl-block-region-heading"><h2 class="visually-hidden" id="ctopbl-block-region-heading">Блоки</h2></aside>
-                                </section>
-                            </div>
-
-                        <div class="wrapper-header">
-                            <header id="page-header" class="page-header-content page-context-header flex-wrap w-100">
-        <div class="page-context-header page-content-header--img flex-wrap"><div class="page-header-image"><div class="content activityiconcontainer modicon_page"><img class="icon activityicon " aria-hidden="true" src="https://lms.mitu.msk.ru/theme/image.php/mitu/page/1783975200/monologo?filtericon=1" alt=""></div></div><div class="page-header-headings"><h1 class="rui-main-content-title--h1 rui-title-container page-header-headings h2">Лекция 1.3. Краткая история Python , его особенности и типы данных. Часть 3</h1></div></div>
-
-    <div class="d-flex flex-wrap">
-        <div class="ml-md-auto d-flex">
-            
-        </div>
-        <div class="header-actions-container ml-auto" data-region="header-actions-container">
-        </div>
-        <div id="course-header">
-            
-        </div>
-    </div>
-</header>
-                        </div>
-                        <section id="region-main" class="" aria-label="Содержимое">
-                            <div id="yui_3_18_1_1_1785888076010_50">
-                                <div class="" id="yui_3_18_1_1_1785888076010_49">
-                                        <section id="cstopbl" data-region="stopbl" class="rui-blocks-area">
-                                            <aside id="block-region-cstopbl" class="block-region" data-blockregion="cstopbl" data-droptarget="1" aria-labelledby="cstopbl-block-region-heading"><h2 class="visually-hidden" id="cstopbl-block-region-heading">Блоки</h2></aside>
-                                        </section>
-                                    <span class="notifications" id="user-notifications"></span>
-                                        <span id="maincontent"></span>
-                                        <div class="activity-header" data-for="page-activity-header">
-                                                <span class="visually-hidden">Требуемые условия завершения</span>
-                                                <div class="rui-activity-wrapper   rui-activity--hasnotcompletion"></div>
-</div>
-                                    <div class="main-content" role="main" id="yui_3_18_1_1_1785888076010_48"><div class="box py-3 generalbox center clearfix" id="yui_3_18_1_1_1785888076010_47"><div class="no-overflow" id="yui_3_18_1_1_1785888076010_46"><p dir="ltr" style="text-align: left;"></p><h4 style="text-align: center;"><b>Встроенные типы данных Python. Часть 1</b></h4><p style="text-align: center;"><b></b></p>
-
-<p style="text-align: center;" id="yui_3_18_1_1_1785888076010_45">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.49.png" alt="ш" width="128" height="128" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p>Поскольку в <b><i>Python</i></b> все
-является объектом, то не удивительно, что, в отличие от ряда других языков
-программирования, помимо пользовательских типов <b><i>(классов)</i></b>
-существуют такие типы данных, как функция, файл, модуль, метод и
-скомпилированный код.</p>
-
-<p>К стандартным <b><i>(встроенным)</i></b>
-типам Python относят:</p>
-
-<p>1) <b><i><span lang="EN-US">none</span></i></b> (аналог
-nullptr из C++); </p>
-
-<p>2) булевы значения; </p>
-
-<p>3) числа (Numeric Туре): </p>
-
-<p></p><ul><ul><li><b><i>int </i></b>—
-целое число,</li><li><b><i>float</i></b>
-— число с плавающей точкой, </li><li><b><i>complex</i></b>
-— комплексное число;</li></ul></ul><!--[if !supportLists]--><p></p>
-
-
-
-
-
-<p>&nbsp;4) списки (Sequence Туре): </p>
-
-<p></p><ul><ul><li><b><i>list </i></b>—
-список, </li><li><b><i>tuple</i></b>
-— кортеж, </li><li><b><i>range</i></b>
-— диапазон; </li></ul></ul><!--[if !supportLists]--><p></p>
-
-
-
-
-
-<p><span lang="EN-US">5) </span>строки<span lang="EN-US"> (Text Sequence Type ) — str; </span></p>
-
-<p><span lang="EN-US">6) </span>бинарные списки<span lang="EN-US"> (Binary Sequence Types): </span></p>
-
-<p></p><ul><ul><li><b><i>bytes </i></b>—
-байты, </li><li><b><i>bytearray</i></b>
-— массивы байтов, </li><li><b><i>memoryview</i></b>
-— специальные объекты для доступа к внутренним данным объекта через protocol
-buffer;</li></ul></ul><!--[if !supportLists]--><p></p>
-
-
-
-
-
-<p>7) множества (Set Types):</p>
-
-<p></p><ul><ul><li><b><i>set</i></b>
-— множество, </li><li><b><i>frozenset</i></b>
-— неизменяемое множество;</li></ul></ul><!--[if !supportLists]--><p></p>
-
-
-
-<p>&nbsp;8) словари (Mapping Types) — <b><i>di</i></b><b><i><span lang="EN-US">c</span></i></b><b><i>t</i></b>.</p>
-
-<p><b><i>Все типы данных</i></b>
-в Python делятся на две категории: изменяемые <b><i>(mutable)</i></b> и
-неизменяемые <b><i>(immutable)</i></b>.</p>
-
-<p><b><i>К неизменяемым типам</i></b>
-данных относят: символьные строки, числа, булевы значения, неизменяемые
-множества и кортежи. Остальные типы данных относятся к изменяемым.</p>
-
-<p><b><i>Разница
-заключается в том</i></b>, что в случае объявления имени переменной неизменяемого
-типа ей задается идентификатор, который невозможно изменить. Приведем следующий
-пример:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.50.png" alt="щз" width="251" height="114" class="img-fluid atto_image_button_text-bottom"><br></p>
-
-<p>В данном <b><i>случае id</i></b>
-переменных будет одинаковый — <b><i>140719951553200</i></b>, и если изменить
-значение имени <b><i>переменной </i></b><b><i><span lang="EN-US">n</span></i></b>, то будет создан
-новый объект с новым значением, <b><i>на который будет</i></b> ссылаться <b><i>переменная
-</i></b><b><i><span lang="EN-US">n</span></i></b>.
-Соответственно изменится и ее идентификатор:</p>
-
-<p style="text-align: center;">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.51.png" alt="з" width="270" height="110" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p><b><i>Вывод данного</i></b>
-сценария представлен ниже:</p>
-
-<p style="text-align: center;">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.52.png" alt="дж" width="271" height="74" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p><b><i>В случае работы</i></b>
-с изменяемыми типами данных не будет создаваться новый объект, а идентификатор
-переменной <b><i>останется без изменения</i></b>. Рассмотрим данный аспект на
-примере работы со списком:</p>
-
-<p style="text-align: center;">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.53.png" alt="з" width="260" height="214" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p>Вывод данного сценария представлен ниже</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.54.png" alt="з" width="254" height="151" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Поскольку в Python</i></b>
-динамическая типизация, можно не указывать тип объявляемой переменной. Он
-выведется в процессе компиляции программы в байт-код, и далее будет выполняться
-проверка, чтобы операции производились над объектами одного типа (сильная
-типизация). <b><i>Начиная с версии 3.6</i></b> в Python появилась возможность
-использовать аннотацию типов. Таким образом, у программистов появилась
-возможность задавать тип объявляемой переменной (т. е. использовать статическую
-типизацию, но для проверки соответствия типа переменной <b><i>с используемой
-аннотацией</i></b> необходимо использовать дополнительную библиотеку, например,
-<b><i>туру</i></b>):</p>
-
-<p style="text-align: center;">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.55.png" alt="зж" width="540" height="154" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p>Далее будут более подробно рассмотрены
-такие типы данных, как: строки, список, словарь, кортежи и множества.</p>
-
-<p>&nbsp;</p>
-
-<p><i><u>Строки</u></i></p>
-
-<p>&nbsp;</p>
-
-<p><b><i>Строковый тип</i></b>
-данных применяется для хранения текстовой информации и произвольных значений
-байтов. <b><i>Строки относятся</i></b> к так называемым последовательностям —
-позиционно упорядоченным коллекциям объектов, в которых объекты располагаются в
-порядке слева направо, сохраняют свои позиции и могут извлекаться по их относительному
-номеру.</p>
-
-<p><b><i>Таким образом строки</i></b>
-представляют собой последовательность из односимвольных строк <b><i>(также к
-последовательностям в Python относятся списки и кортежи)</i></b> и поддерживают
-операции, которые предполагают наличие позиционного порядка среди элементов:
-индексация, срез, конкатенация и повторение.</p>
-
-<p>Для примера используем переменную
-строкового типа <b><i>my_str</i></b>, инициализировав ее значением <b><i>«Test»</i></b>:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.56.png" alt="з" width="564" height="182" class="img-fluid atto_image_button_text-bottom"><br></p>
-
-<p>Индексация в <b><i>Python</i></b>
-представляет собой смещение относительно первого <b><i>(нулевого)</i></b>
-элемента последовательности и может быть как положительной <b><i>(от 0 до</i></b>
-<b><i><span lang="EN-US">n</span></i></b><b><i>
-- 1),</i></b> так и отрицательной <b><i>(от -1 до -</i></b><b><i><span lang="EN-US">n</span></i></b><b><i>):</i></b></p>
-
-<p style="text-align: center;">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.57.png" alt="ж" width="470" height="71" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p><b><i>Помимо простой </i></b>позиционной
-индексации, последовательности поддерживают ее более общую форму — <b><i>срез</i></b>.
-Срез представляет собой способ извлечения целой части за один шаг. В общем виде
-концепцию среза можно представить как <b><i><span lang="EN-US">X</span></i></b><b><i>[</i></b><b><i><span lang="EN-US">i</span></i></b><b><i>:</i></b><b><i><span lang="EN-US">j</span></i></b><b><i>].
-</i></b>Такая форма записи обозначает, что
-будут извлечены значения из последовательности <b><i>X</i></b>, начиная с
-позиции <b><i>i</i></b> до позиции <b><i><span lang="EN-US">j</span></i></b>, не включая ее <b><i>(т.
-е. j - 1):</i></b></p>
-
-<p style="text-align: center;">&nbsp;<img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.58.png" alt="зж" width="566" height="68" class="img-fluid atto_image_button_text-bottom"></p>
-
-<p><b><i>При использовании</i></b>
-среза его левая граница по умолчанию принимается равной нулю, а <b><i>правая</i></b>
-— длине нарезаемой последовательности (то есть длине строки). <b><i>Это
-приводит</i></b> к нескольким распространенным вариантам применения:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.59.png" alt="д" width="360" height="257" class="img-fluid atto_image_button_text-bottom"><br></p>
-
-<p><b><i>Помимо</i></b>
-приведенного формата записи среза, можно указывать еще и его шаг: <b><i><span lang="EN-US">X</span></i></b><b><i>
-[</i></b><b><i><span lang="EN-US">i</span></i></b><b><i>:</i></b><b><i><span lang="EN-US">j</span></i></b><b><i>:</i></b><b><i><span lang="EN-US">n</span></i></b><b><i>]
-. </i></b>Такая форма записи обозначает, что
-будут извлечены значения из последовательности <b><i>X</i></b>, начиная с
-позиции <b><i>i</i></b> до позиции <b><i><span lang="EN-US">j</span></i></b>, не включая ее <b><i>(т.
-е. </i></b><b><i><span lang="EN-US">j</span></i></b><b><i>
-- 1), </i></b>с шагом <b><i><span lang="EN-US">n</span></i></b>:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.60.png" alt="зж" width="523" height="265" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Конкатенация и
-повторение </i></b>последовательностей производятся
-следующим образом: </p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.61.png" alt="ж" width="574" height="222" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Так как строки </i></b>относятся
-к неизменяемому типу данных, их нельзя модифицировать, <b><i>обращаяс</i></b>ь
-по индексу элемента (на месте):</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.62.png" alt="зж" width="681" height="307" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Имеется возможность
-модифицировать</i></b> текстовые данные на месте. Для
-этого необходимо развернуть их в список индивидуальных символов и объединить
-вместе с пустым разделителем или использовать для этого тип <b><i>bytearray</i></b>:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.63.png" alt="з" width="431" height="322" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Далее рассмотрим
-методы</i></b>, которые специфичны для строкового
-типа данных и не распространяются на последовательности. Данные методы
-возвращают измененную строку, но не модифицируют ту, над которой производится
-операция. К ним относят:</p>
-
-<p></p><ul><li><span lang="EN-US">find;</span></li><li>replace;</li><li><span lang="EN-US">split;
-</span></li><li><span lang="EN-US">upper;
-</span></li><li><span lang="EN-US">rstrip
-</span>и т.д.</li></ul><p></p>
-
-<p>Рассмотрим
-их принцип работы:<span lang="EN-US"></span></p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.64.png" alt="ж" width="613" height="416" class="img-fluid atto_image_button_text-bottom" style="font-size: 14px;"></p>
-
-<p><b><i>Методы</i></b>
-можно чередовать:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.65.png" alt="дж" width="505" height="131" class="img-fluid atto_image_button_text-bottom" style="font-size: 14px;"></p>
-
-<p><i><u>Списки</u></i></p>
-
-<p><b><i>Списки</i></b>
-— позиционно упорядоченные коллекции объектов произвольных типов, не имеющие
-фиксированного размера. В отличие от строк списки можно модифицировать на месте
-путем присваивания по индексу или вызовом некоторых списковых методов. Это
-позволяет использовать списки как довольно гибкий инструмент для представления
-произвольных коллекций, таких как: перечня продуктов в магазине, учащихся в
-школе и т. д.</p>
-
-<p>К <b><i>основным характеристикам</i></b>
-списков можно отнести то, что они:</p>
-
-<p></p><ul><li>Являются
-упорядоченными коллекциями произвольных объектов; </li><li>Поддерживают доступ по
-смещению;</li><li>Имеют переменную
-длину, разнородны и допускают произвольно глубокое вложение; </li><li>Относятся к категории
-«изменяемая последовательность»;</li><li>Представляют собой
-массивы ссылок на объекты. </li></ul><!--[if !supportLists]--><p></p>
-
-
-
-
-
-
-
-
-
-<p><b><i>Существует</i></b>
-несколько способов создания пустого списка</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.66.png" alt="з" width="185" height="82" class="img-fluid atto_image_button_text-bottom"><br></p>
-
-<p><b><i>Если список необходимо</i></b>
-инициализировать переменными в момент его объявления, используют следующие
-конструкции:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.67.png" alt="з" width="324" height="69" class="img-fluid atto_image_button_text-bottom"><br></p>
-
-<p><b><i>Добавление в список</i></b>
-осуществляется через вызов у него метода .<b><i>append (va</i></b><b><i><span lang="EN-US">l</span></i></b><b><i>),</i></b>
-где <b><i>val</i></b> — добавляемое в конец списка значение:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.68.png" alt="ш" width="448" height="117" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>При этом не обязательно</i></b>,
-чтобы в списке содержались или в него добавлялись данные одного типа:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.69.png" alt="з" width="511" height="98" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Казалось бы, при объявлении </i></b>типа
-посредством механизма аннотации проблема будет решена, и в случае добавления
-объекта другого типа произойдет ошибка:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.70.png" alt="д" width="348" height="50" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p>Но нет:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.71.png" alt="о" width="385" height="69" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p>В отличие от <b><i>C++ </i></b>или <b><i>Java</i></b>
-ошибка будет выдана не на этапе компиляции, а на этапе выполнения программы,
-если у элемента списка нет вызываемого разработчиком метода. <b><i>Например</i></b>,
-выполним вычитание из каждого элемента списка по единице:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.72.png" alt="в" width="259" height="74" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p>В таком случае будет выдана ошибка
-типа:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.73.png" alt="л" width="622" height="126" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Это связано с тем</i></b>,
-что типы в <b><i>Python</i></b> определяются автоматически во время выполнения,
-а не при их объявлении в коде. Получается, что разработчик никогда не объявляет
-переменные заблаговременно (эту концепцию проще уловить, если постоянно помнить
-о том, что все сводится к переменным, объектам и связям между ними).</p>
-
-<p><b><i>Если бы строковый</i></b>
-тип поддерживал операцию вычитания, разработчик мог бы так и не узнать о
-допущенной им ошибке. Давайте реализуем файл со сценарием Python <b><i>«main.py»,</i></b>
-предварительно скачав анализатор кода Python <b><i>(линтер)</i></b> для
-статической проверки типов <b><i>(pip install туру):</i></b></p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.74.png" alt="х" width="372" height="253" class="img-fluid atto_image_button_text-bottom"><br></p>
-
-<p><b><i>Перед запуском</i></b>
-кода сценария в терминале <b><i>IDE (Integrated Development Environment)</i></b>
-выполним следующую команду:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.75.png" alt="хэ" width="489" height="63" class="img-fluid atto_image_button_text-bottom" style="font-size: 14px;"></p>
-
-<p><b><i>Муру</i></b>
-выполнит проверку подаваемого ему на <b><i>вход файла</i></b> с кодом на
-соответствие типов объектов и выдаст следующие замечания, которые явно
-указывают на допущенные ошибки:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.76.png" alt="в" width="668" height="209" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Конечно,</i></b>
-такой подход имеет свои недостатки, но позволяет избежать утомительных поисков
-в случае несоответствия типов объектов, которые хранятся в списках, словарях,
-подаются на вход функции или возвращаются ею и т. д:</p>
-
-<p>Помимо метода <b><i>append(),</i></b>
-который осуществляет добавление объекта в конец списка, можно использовать метод
-<b><i>.insert(i, val).</i></b> Он осуществляет добавление объекта в список на
-указанную позицию, где все элементы, следующие за <b><i>индексом i</i></b>,
-сдвигаются вправо:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.77.png" alt="лд" width="539" height="126" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Метод extend(L)</i></b>
-добавляет существующие элементы из <b><i>списка L</i></b> в правую часть
-текущего списка:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.78.png" alt="в" width="298" height="124" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p>Удаление элемента списка можно
-осуществлять по номеру его индекса, а также используя методы <b><i>remove() или
-.pop([i]),</i></b> где <b><i>i</i></b> — индекс извлекаемого из списка элемента
-(если его не задавать, то произойдет извлечение последнего элемента в списке).
-А метод <b><i>.</i></b><b><i><span lang="EN-US">clear</span></i></b><b><i>() (равносильно del
-my_list[:])</i></b> полностью очищает список:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.79.png" alt="в" width="572" height="96" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Сортировка</i></b>
-элементов списка осуществляется следующим образом:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.80.png" alt="г" width="433" height="75" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>При этом необходимо</i></b>
-запомнить, что при сортировке списка с разнотипными элементами может произойти
-ошибка:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.81.png" alt="щ" width="681" height="139" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Если подать</i></b>
-на вход метода <b><i>.sort()</i></b> параметр <b><i>key</i></b> со значением,
-равным функции<b><i> str</i></b> (приведение элемента списка к строковому
-типу), то ошибки удастся избежать:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.82.png" alt="щ" width="524" height="74" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Обращение</i></b>
-по несуществующему индексу к элементу списка считается ошибкой и приводит к
-сообщению: <b><i>IndexError</i></b>: <b><i>list assignment index out of range.</i></b></p>
-
-<p>Если нужно посчитать, сколько раз
-по значению повторяется элемент в списке, то необходимо использовать метод <b><i>.count(x)</i></b>:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.83.png" alt="ш" width="323" height="77" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Так как список </i></b>относится
-к изменяемым типам данных в <b><i>Python</i></b>, то при присваивании уже
-существующего списка новой переменной копирование самого списка не выполняется.
-<b><i>Новой переменной</i></b> будет присвоена ссылка на уже существующий
-список:</p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.84.png" alt="щд" width="464" height="152" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>В тех случаях</i></b>,
-когда через новую переменную планируется работать с копией уже существующего
-списка, во избежание изменений исходного списка необходимо использовать метод <b><i>.сору()
-(my_array[:], list(my_array) и т. д.):</i></b></p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.85.png" alt="ш" width="501" height="164" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><b><i>Проверить</i></b>, содержится ли в списке объект с определенным значением, можно следующим способом:&nbsp;<a href="#_edn1" name="_ednref1" title=""><!--[if !supportFootnotes]--><sup>[i]</sup><!--[endif]--></a></p>
-
-<p style="text-align: center;"><img src="https://lms.mitu.msk.ru/pluginfile.php/33848/mod_page/content/1/1.86.png" alt="г" width="341" height="111" class="img-fluid atto_image_button_text-bottom"><br><!--[endif]--></p>
-
-<p><i><u><br></u></i></p><p><i><u><br></u></i></p><p><i><u>Продолжение в
-следующей лекции</u></i></p>
-
-<p><b><i><br></i></b></p><p><b><i>Используемая литература:</i></b></p>
-
-<div><!--[if !supportEndnotes]--><br clear="all">
-
-<!--[endif]-->
-
-<div id="edn1">
-
-<p><a href="#_ednref1" name="_edn1" title=""><!--[if !supportFootnotes]--><sup>[i]</sup><!--[endif]--></a><sup> </sup><a href="https://urait.ru/bcode/532446">Чернышев, С.&nbsp;А.&nbsp; Основы программирования
-на Python&nbsp;: учебное пособие для вузов&nbsp;/
-С.&nbsp;А.&nbsp;Чернышев.&nbsp;— 2-е изд., перераб. и доп.&nbsp;— Москва&nbsp;:
-Издательство Юрайт, 2023.&nbsp;— 349&nbsp;с.&nbsp;— (Высшее
-образование).&nbsp;— ISBN&nbsp;978-5-534-17139-6. — Текст : электронный //
-Образовательная платформа Юрайт [сайт].</a>&nbsp;(дата обращения: 15.11.2023).</p>
-
-</div>
-
-</div><br><p></p></div></div><div class="modified">Последнее изменение: воскресенье, 26 ноября 2023, 10:48</div></div>
-
-                                        <div>
-                                            <section id="csbottombl" data-region="csbottombl" class="rui-blocks-area">
-                                                <aside id="block-region-csbottombl" class="block-region" data-blockregion="csbottombl" data-droptarget="1" aria-labelledby="csbottombl-block-region-heading"><h2 class="visually-hidden" id="csbottombl-block-region-heading">Блоки</h2></aside>
-                                            </section>
-                                        </div>
-
-                                </div>
-                            </div>
-                            <div class="activity-navigation container-fluid mt-4 d-print-none">
-<div class="row no-gutters">
-    <div class="col">        <div class="float-left">
-                <a href="https://lms.mitu.msk.ru/mod/page/view.php?id=17540&amp;forceview=1" id="prev-activity-link" class="btn btn-icon btn-sm btn-secondary" aria-label="Предыдущий активный элемент: Лекция 1.2. Краткая история Python , его особенности и типы данных. Часть 2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="◄ Лекция 1.2. Краткая история Python , его особенности и типы данных. Часть 2">
-        <svg class="" width="18" height="18" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-            <path d="M18.5 12H6m0 0l6-6m-6 6l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-    </a>
-
-        </div>
-</div>
-    <div class="col">        <div class="mdl-align">
-            <div class="urlselect">
-    <form method="post" action="https://lms.mitu.msk.ru/course/jumpto.php" class="form-inline" id="url_select_f6a727d4c390286">
-        <input type="hidden" name="sesskey" value="DUIGqrtfAT">
-            <label for="jump-to-activity" class="visually-hidden">
-                Перейти к активному элементу
-            </label>
-        <select id="jump-to-activity" class="custom-select custom-select-sm urlselect" name="jump">
-                    <option value="" selected="">Перейти к активному элементу</option>
-                    <option value="/course/view.php?id=359">Главная страница курса</option>
-                    <option value="/mod/page/view.php?id=17539&amp;forceview=1">Лекция 1.1. Краткая история Python , его особенности и типы данных. Часть 1</option>
-                    <option value="/mod/page/view.php?id=17540&amp;forceview=1">Лекция 1.2. Краткая история Python , его особенности и типы данных. Часть 2</option>
-                    <option value="/mod/page/view.php?id=17542&amp;forceview=1">Лекция 1.4. Краткая история Python , его особенности и типы данных. Часть 4</option>
-                    <option value="/mod/page/view.php?id=17543&amp;forceview=1">Лекция 1.5. Краткая история Python , его особенности и типы данных. Часть 5</option>
-                    <option value="/mod/quiz/view.php?id=17598&amp;forceview=1">Тест 1. Системы программирования на языке Python ч.1</option>
-                    <option value="/mod/page/view.php?id=17610&amp;forceview=1">Дополнительная литература по дисциплине "Системы программирования на языке Python ч.1"</option>
-        </select>
-            <noscript>
-                <input type="submit" class="btn btn-sm btn-secondary ml-1" value="Применить">
-            </noscript>
-    </form>
-</div>
-
-        </div>
-</div>
-    <div class="col">        <div class="float-right">
-                <a href="https://lms.mitu.msk.ru/mod/page/view.php?id=17542&amp;forceview=1" id="next-activity-link" class="btn btn-icon btn-sm btn-secondary" aria-label="Следующий активный элемент: Лекция 1.4. Краткая история Python , его особенности и типы данных. Часть 4" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Лекция 1.4. Краткая история Python , его особенности и типы данных. Часть 4 ►">
-        <svg width="18" height="18" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
-            <path d="M6 12h12.5m0 0l-6-6m6 6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-    </a>
-
-        </div>
-</div>
-</div>
-</div>
-                            
-                        </section>
-                    </div>
+2026-08-08 14:30:20  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:30:20 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:30:20 [DEBUG]
+ 62.51.231.145 I slot get_availabl: id  1 | task -1 | selected slot by LCP similarity, sim_best = 0.973 (> 0.100 thold), f_keep = 0.955
+62.51.231.248 I
+2026-08-08 14:30:20 [DEBUG]
+ slot launch_slot_: id  1 | task 3464 | processing task, is_child = 0
+2026-08-08 14:30:20  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:30:20  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:30:20  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:30:20  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.08 seconds.
+2026-08-08 14:30:22 [DEBUG]
+ 62.53.899.783 I slot print_timing: id  0 | task 2815 | n_decoded =    708, tg =  28.66 t/s, tg_3s =  24.39 t/s
+2026-08-08 14:30:23 [DEBUG]
+ 62.54.289.550 I slot print_timing: id  1 | task 3464 | prompt eval time =     296.20 ms /   107 tokens (    2.77 ms per token,   361.24 tokens per second)
+62.54.289.559 I slot print_timing: id  1 | task 3464 |        eval time =    2762.04 ms /    72 tokens (   38.36 ms per token,    26.07 tokens per second)
+62.54.289.561 I slot print_timing: id  1 | task 3464 |       total time =    3058.24 ms /   179 tokens
+62.54.289.562 I slot print_timing: id  1 | task 3464 |    graphs reused =       3399
+2026-08-08 14:30:23 [DEBUG]
+ 62.54.289.782 I slot      release: id  1 | task 3464 | stop processing: n_tokens = 4038, truncated = 0
+2026-08-08 14:30:23 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 3464
+2026-08-08 14:30:23  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:30:23  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-1fhbgg4hfkg2i88zvdxsqc",
+  "object": "chat.completion",
+  "created": 1786188620,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"a\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"пользовательский интерфейс веб-приложения может быть переработан или модернизирован, не затрагивая основную функциональную бизнес-логику и логику доступа к данным.\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3967,
+    "completion_tokens": 72,
+    "total_tokens": 4039,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:30:25 [DEBUG]
+ 62.56.911.695 I slot print_timing: id  0 | task 2815 | n_decoded =    802, tg =  28.93 t/s, tg_3s =  31.21 t/s
+2026-08-08 14:30:27 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Лекция 1. Трехуровневая арх... <Truncated in logs> ...о\nb.\nВерно\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:30:27  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:30:27 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:30:27 [DEBUG]
+ 62.59.101.131 I slot get_availabl: id  1 | task -1 | selected slot by LCP similarity, sim_best = 0.980 (> 0.100 thold), f_keep = 0.956
+2026-08-08 14:30:27 [DEBUG]
+ 62.59.101.278 I slot launch_slot_: id  1 | task 3692 | processing task, is_child = 0
+2026-08-08 14:30:27  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:30:28  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:30:28  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:30:28  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.08 seconds.
+2026-08-08 14:30:28 [DEBUG]
+ 62.59.942.550 I slot print_timing: id  0 | task 2815 | n_decoded =    889, tg =  28.91 t/s, tg_3s =  28.71 t/s
+2026-08-08 14:30:30 [DEBUG]
+ 63.02.113.813 I slot print_timing: id  1 | task 3692 | prompt eval time =     255.64 ms /    80 tokens (    3.20 ms per token,   312.94 tokens per second)
+63.02.113.820 I slot print_timing: id  1 | task 3692 |        eval time =    2756.83 ms /    72 tokens (   38.29 ms per token,    26.12 tokens per second)
+63.02.113.821 I slot print_timing: id  1 | task 3692 |       total time =    3012.47 ms /   152 tokens
+63.02.113.823 I slot print_timing: id  1 | task 3692 |    graphs reused =       3623
+2026-08-08 14:30:30 [DEBUG]
+ 63.02.114.128 I slot      release: id  1 | task 3692 | stop processing: n_tokens = 4011, truncated = 0
+2026-08-08 14:30:30 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 3692
+2026-08-08 14:30:30  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:30:30  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-c1chp33afuf9j4v6ci368",
+  "object": "chat.completion",
+  "created": 1786188627,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"a\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"KISS (keep it simple, stupid) – принцип программирования, зародившийся в 60-х годах 20 века, рекомендующий преследовать простоту при написании любых программ\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3940,
+    "completion_tokens": 72,
+    "total_tokens": 4012,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:30:31 [DEBUG]
+ 63.02.970.843 I slot print_timing: id  0 | task 2815 | n_decoded =    972, tg =  28.78 t/s, tg_3s =  27.41 t/s
+2026-08-08 14:30:34 [DEBUG]
+ 63.05.984.889 I slot print_timing: id  0 | task 2815 | n_decoded =   1069, tg =  29.05 t/s, tg_3s =  32.18 t/s
+2026-08-08 14:30:35 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Лекция 1. Трехуровневая арх... <Truncated in logs> ...о\nb.\nВерно\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:30:35  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:30:35 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:30:35 [DEBUG]
+ 63.06.913.065 I slot get_availabl: id  1 | task -1 | selected slot by LCP similarity, sim_best = 0.976 (> 0.100 thold), f_keep = 0.962
+2026-08-08 14:30:35 [DEBUG]
+ 63.06.913.192 I slot launch_slot_: id  1 | task 3919 | processing task, is_child = 0
+2026-08-08 14:30:35  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:30:36  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:30:36  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:30:36  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.08 seconds.
+2026-08-08 14:30:37 [DEBUG]
+ 63.08.987.588 I slot print_timing: id  0 | task 2815 | n_decoded =   1146, tg =  28.80 t/s, tg_3s =  25.64 t/s
+2026-08-08 14:30:37 [DEBUG]
+ 63.08.988.371 I slot print_timing: id  1 | task 3919 | prompt eval time =     279.23 ms /    95 tokens (    2.94 ms per token,   340.22 tokens per second)
+63.08.988.377 I slot print_timing: id  1 | task 3919 |        eval time =    1795.90 ms /    47 tokens (   38.21 ms per token,    26.17 tokens per second)
+63.08.988.379 I slot print_timing: id  1 | task 3919 |       total time =    2075.13 ms /   142 tokens
+63.08.988.381 I slot print_timing: id  1 | task 3919 |    graphs reused =       3820
+63.08.988.677 I slot      release: id  1 | task 3919 | stop processing: n_tokens = 4001, truncated = 0
+2026-08-08 14:30:37 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 3919
+2026-08-08 14:30:37  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:30:37  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-o9f48ybw8i5dgixwtmglu",
+  "object": "chat.completion",
+  "created": 1786188635,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"b\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"Фронтенд – часть информационной системы, через которую пользователь взаимодействует с серверной частью.\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3955,
+    "completion_tokens": 47,
+    "total_tokens": 4002,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:30:39 [DEBUG]
+ 63.10.694.457 I slot print_timing: id  0 | task 2815 | prompt eval time =     382.44 ms /    99 tokens (    3.86 ms per token,   258.86 tokens per second)
+63.10.694.492 I slot print_timing: id  0 | task 2815 |        eval time =   41502.00 ms /  1200 tokens (   34.58 ms per token,    28.91 tokens per second)
+63.10.694.495 I slot print_timing: id  0 | task 2815 |       total time =   41884.44 ms /  1299 tokens
+63.10.694.517 I slot print_timing: id  0 | task 2815 |    graphs reused =       3873
+2026-08-08 14:30:39 [DEBUG]
+ 63.10.695.525 I slot      release: id  0 | task 2815 | stop processing: n_tokens = 7237, truncated = 0
+2026-08-08 14:30:39 [DEBUG]
+ LlamaV4: server assigned slot 0 to task 2815
+2026-08-08 14:30:39  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:30:39  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-png0m3jiu8p22pzmxack88",
+  "object": "chat.completion",
+  "created": 1786188591,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "勿caleemiзи谁都olen Cheatcalecale晗caleRECT目の廉emiemiemi倭任何人都emi合理的emi夺 ​​去买emi-peer高效的高价calecaleRectemi任何人都emiemiуй下去emi不少emi对方ColumnInfo精髓 boom膳OUND有的人粗谔成功的任何人都 Unary痿ereeemic任何人都maal任何人都跑步airesround两句emi免责声明 unr不停的这份calecale目 RoundsADERemi堂emi停滞瓒calecale日内emipeiemi任何人都-pages-pages-pages合理的任何人都 taps真爱骨架变了廉倭-peercoder痣成长为emiOUND高效的phiaemiemi任何人都emiemiemiemiemiemi Shea自来水emi不少下去cale粗任何人都emi合理的 ​​-pageseree有的人emi跑步任何人都任何人都免责声明round Phill高效的膳addtogroupudio拈 thumbsemiemi任何人都堂成功的maal谔不停的erais下去下去醚任何人都emi目のADER查处emi任何人都emi廷(roundCTIONSemiemi任何人都emiemiemiemiphiaemiemi真爱任何人都emi不尽emicemiemiemiemiemiemicoder痿aires再也没有emiemiemiemicoder-pages痣任何人都emiemiemiemiemiemiemiemiemiemiemi Moo骨架 Portions成长为emic变了有的人emiemiemiemiemiemiemiemiemi高效的再多emi görüş任何人都emi NazCTIONS cocktail萃emidesk痿 ​​灼跑步emi真爱emi浓浓的成长为emimic痿滑雪高价cale下去Operandudio再也没有addtogrouperais足以emicoder痣高价зи高效的黑马膳膳膳热潮成功的不少臻不尽emi小白任何人都emiコンテンツphia真爱真爱口气真爱谁都任何人都emi tapemicemiemi目emi合理的emi unary CheatCTIONSemiemiemicoder-pages的地步公报emi汰OUND有的人浓浓的 görüş-peer灼汰高效的高效的骨架emi两国emi:viewcalecale下去round拈-pages-pages-pages下去cale-pages师傅maal粗任何人都楞emiudio-pages高效的不少eree-pages Phillolis下去倭 Unary小白小白自来水coder憬醚高效的高效的汰汰neau-pages高效的不尽高效的完美的addtogroup汰odesk再多CTIONS的地步公报desk真爱小白痿下去-pages Naz谔合理的phia有的人再也没有emi高效的-peer高效的 thumbs汰未必高效的高效的任何人都骨架 görüş些许合理的高效的不少不少查处maal不少OUND高效的不少不少-pagesudio不停的膳廷不少-pages-pages-pagesolis-pagescommons足以公报coder ngh粗成功的不少师傅-pagesfitness濠 ghé ​​下去cale-pages这份neau-pages-pages-pages完美的不尽desk再多痿-pages汰谔免责声明emi真爱的地步olis-pages有的人热潮-peer高效的浓浓的精髓CTIONS再也没有真爱下去旸calecale廉ereecalecale下去cale Phill查处-pages-pages-pages合理的任何人都高效的高效的汰汰-pagesudioUMEaddtogroup不少erais:view末膳emicoder盛宴 Portions高效的高效的高效的高效的师傅拈-pages高效的高效的高效的-pages口气高效的高效的高效的高效的高效的憬高效的高效的高效的高效的高效的 Naz高效的-pagesfitness高价 thumbscoder这份-peer高效的再也没有真爱老人家不停的与众未必臻真爱的地步neau ngh公报谔maal任何人都倭olis Phill有的人高效的phia成功的公报不少高效的合理的高效的CTIONS高效的高效的粗高效的高效的高效的高效的高效的高效的addtogroup高效的高效的-pages:view下去 ​​emi廷高效的师傅-pages-pages查处沟cale下去-pages-pages高效的合理的高效的 Unary高效的udiocoder-pages下去-pages-pages-pagesereecale翕emi日内粗Jakeemi跑步廉calecale粗任何人都倭楞emi-pages下去neau-pages公报不少olisalink有的人高效的CTIONS高效的汰高效的高效的完美的emi自来水iska去买-peerdalround下去-pages-pages-pages高效的OUNDphia醚高效的 ​​\\Php合理的合理的高效的高效的高效的高效的高效的高效的高效的 Unary合理的合理的合理的addtogroup合理的小白不尽udiocoder拈-pages师傅汰udio高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的汰不少高效的高效的汰公报高效的高效的高效的高效的完美的高效的高效的高效的高效的廷高效的高效的浓浓的高效的高效的高效的 görüşdesk真爱 unary灼-peercoder真爱汰汰PUREemi高效的CTIONS高效的高效的高效的高效的高效的高效的自来水eree去买有的人高效的高效的高效的-pages师傅汰高效的高效的高效的再也没有拈下去-pages汰neau-pages-pages-pagesudio憬合理的任何人都olis-pages汰公报高效的 Unary汰这份完美的高效的高效的:view-pages-pages高效的addtogroup合理的高效的浓浓的/sources廉翕emi高效的高效的coder的地步 ​​emi高效的高效的高效的-pages-pages-pages高效的高效的高效的高效的高效的高效的-peercoder与众汰不少CTIONS真爱 unary汰-pages-pages-pages高效的高效的高效的高效的师傅下去 Phill thumbsemi高效的合理的合理的倭粗下去cale-pages-pages高效的公报高效的高效的高效的完美的 Unary高效的高效的汰udio-pagescoder高效的addtogroup高效的汰汰-pages汰公报高效的高效的coder拈-pages憬-pages-pagesfitness高效的高效的高效的高效的下去-pages-pages查处neau翕楞廉粗eree下去日内任何人都emi高效olis-pages有的人高效的高效的高效的高效的高效的高效的合理的phia-peer高效的不少高效的廷高效的汰 Thương治理体系倭alinkcale-pages-pages-pages Phill不停的高效的 Unary高效的-pagesudio高效的高效的高效的真爱汰汰公报coder拈高效的再也没有高效的汰汰未必足以高效的汰些许emi灼不少口气的地步neau-pages高效的不尽与众汰-pages汰羯任何人都高效的 görüşdesk浓浓的完美的CTIONS痿有的人高效的师傅-pages:viewcoder-pages下去下去查处合理的emicoder-pagesfitness热潮-peer真爱真爱:view的伟大コンテンツ-pages Naz膳emi真爱自来水emi真爱addtogroup小白不停的老人家phia真爱高效的再也没有两句inct-pages真爱再多emic下去扯濠emi不少成长为高效的高效的udio高效的任何人都emi灼口气的地步neau-pages汰maal不尽真爱汰不少痿desk真爱PUREOUND成功的 ghé完美的真爱汰不少足以commons真爱汰公报拈粗任何人都emi Unary汰羯 thumbsコンテンツ合理的任何人都有的人膳任何人都任何人都任何人都phia-peer görüşaddtogroup廷odesk高效的再也没有真爱老人家-peer汰些许CTIONS真爱-pageserais下去udio Naz谔不停的olis免责声明跑步maal膳严重的cale查处neaucale翕maalalinkeree-pages这份-pages-pages-pages-pages合理的成功的OUND完美的自来水去买不少高效的合理的小白汰-pages-pages高效的commons高效的 Unarycoder不少高效的 tap unaryemi汰コンテンツ骨架emi汰公报高效的高效的合理的addtogroup藝-pages miner-pagesCTIONSemiphiaemi高效的再也没有-pages:view师傅倭emi痿下去下去粗任何人都emi görüş不尽真爱小白desk真爱自来水emi汰maal-peer汰不少coder不少高效的廷高效的完美的高效的汰不少高效的烝跑步合理的浓浓的的地步-pages真爱汰不停的-pages汰commons灼コンテンツ高效的高效的 Unary再多高效的高效的 Naz真爱真爱膳desk真爱真爱真爱真爱真爱热潮OUND真爱真爱真爱",
+        "reasoning_content": "",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 6038,
+    "completion_tokens": 1200,
+    "total_tokens": 7238,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:30:41 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Тема 6. Управление качество... <Truncated in logs> ...а прогноза\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:30:41  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:30:41 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:30:41 [DEBUG]
+ 63.12.831.582 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, sim_best = 0.980 (> 0.100 thold), f_keep = 0.824
+2026-08-08 14:30:41 [DEBUG]
+ 63.12.831.705 I slot launch_slot_: id  0 | task 4021 | processing task, is_child = 0
+2026-08-08 14:30:42  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:30:42  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:30:42 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Лекция 1. Трехуровневая арх... <Truncated in logs> ...b.\nНеверно\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:30:42  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:30:42 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:30:42 [DEBUG]
+ 63.13.788.520 I slot get_availabl: id  1 | task -1 | selected slot by LRU, t_last = 3788881509
+2026-08-08 14:31:04 [DEBUG]
+ 63.35.753.464 I slot launch_slot_: id  1 | task 4023 | processing task, is_child = 0
+2026-08-08 14:31:04  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:31:05  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:31:05  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:31:05  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.09 seconds.
+2026-08-08 14:31:06 [DEBUG]
+ 63.38.120.073 I slot print_timing: id  1 | task 4023 | prompt eval time =     395.80 ms /   107 tokens (    3.70 ms per token,   270.34 tokens per second)
+63.38.120.081 I slot print_timing: id  1 | task 4023 |        eval time =    1970.75 ms /    51 tokens (   38.64 ms per token,    25.88 tokens per second)
+63.38.120.082 I slot print_timing: id  1 | task 4023 |       total time =    2366.54 ms /   158 tokens
+63.38.120.083 I slot print_timing: id  1 | task 4023 |    graphs reused =       3922
+2026-08-08 14:31:06 [DEBUG]
+ 63.38.120.480 I slot      release: id  1 | task 4023 | stop processing: n_tokens = 4017, truncated = 0
+2026-08-08 14:31:06 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 4023
+2026-08-08 14:31:06  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:31:06  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-rahsltqx788mggw31nkq5g",
+  "object": "chat.completion",
+  "created": 1786188642,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"a\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"уровень представления является внешним уровнем в 3-уровневой системе и состоит из пользовательского интерфейса.\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3967,
+    "completion_tokens": 51,
+    "total_tokens": 4018,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:31:08 [DEBUG]
+ 63.39.639.414 I slot print_timing: id  0 | task 4021 | n_decoded =    100, tg =   3.87 t/s, tg_3s =   3.87 t/s
+2026-08-08 14:31:11 [DEBUG]
+ 63.42.652.260 I slot print_timing: id  0 | task 4021 | n_decoded =    197, tg =   6.83 t/s, tg_3s =  32.20 t/s
+2026-08-08 14:31:11 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Лекция 1. Трехуровневая арх... <Truncated in logs> ....NET\nd.\nDI\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:31:11  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:31:11 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:31:11 [DEBUG]
+ 63.42.959.359 I slot get_availabl: id  1 | task -1 | selected slot by LCP similarity, sim_best = 0.976 (> 0.100 thold), f_keep = 0.961
+2026-08-08 14:31:11 [DEBUG]
+ 63.42.959.554 I slot launch_slot_: id  1 | task 4230 | processing task, is_child = 0
+2026-08-08 14:31:11  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:31:12  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:31:12  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:31:12  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.08 seconds.
+2026-08-08 14:31:14 [DEBUG]
+ 63.45.665.796 I slot print_timing: id  0 | task 4021 | n_decoded =    271, tg =   8.50 t/s, tg_3s =  24.56 t/s
+2026-08-08 14:31:15 [DEBUG]
+ 63.46.249.264 I slot print_timing: id  1 | task 4230 | prompt eval time =     270.03 ms /    94 tokens (    2.87 ms per token,   348.11 tokens per second)
+63.46.249.271 I slot print_timing: id  1 | task 4230 |        eval time =    3019.61 ms /    79 tokens (   38.22 ms per token,    26.16 tokens per second)
+63.46.249.272 I slot print_timing: id  1 | task 4230 |       total time =    3289.64 ms /   173 tokens
+63.46.249.274 I slot print_timing: id  1 | task 4230 |    graphs reused =       4152
+2026-08-08 14:31:15 [DEBUG]
+ 63.46.249.488 I slot      release: id  1 | task 4230 | stop processing: n_tokens = 4032, truncated = 0
+2026-08-08 14:31:15  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:31:15  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-a51x84smkuwwxc4hl51c3",
+  "object": "chat.completion",
+  "created": 1786188671,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"c\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"Классический проект ASP.NET в соответствии с трехуровневый архитектурой будет иметь основной проект ASP.NET – уровень представления, проекты бизнес-логики, соответствующие уровню приложения и уровень данных в виде отдельных проектов.\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3954,
+    "completion_tokens": 79,
+    "total_tokens": 4033,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:31:15 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 4230
+2026-08-08 14:31:17 [DEBUG]
+ 63.48.675.969 I slot print_timing: id  0 | task 4021 | n_decoded =    364, tg =  10.43 t/s, tg_3s =  30.90 t/s
+2026-08-08 14:31:19 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Лекция 1. Трехуровневая арх... <Truncated in logs> ...ах 20 века\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:31:19  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:31:19 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:31:19 [DEBUG]
+ 63.51.105.818 I slot get_availabl: id  1 | task -1 | selected slot by LCP similarity, sim_best = 0.972 (> 0.100 thold), f_keep = 0.957
+2026-08-08 14:31:19 [DEBUG]
+ 63.51.105.958 I slot launch_slot_: id  1 | task 4466 | processing task, is_child = 0
+2026-08-08 14:31:19  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:31:20  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:31:20  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:31:20  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.08 seconds.
+2026-08-08 14:31:20 [DEBUG]
+ 63.51.678.947 I slot print_timing: id  0 | task 4021 | n_decoded =    451, tg =  11.90 t/s, tg_3s =  28.97 t/s
+2026-08-08 14:31:21 [DEBUG]
+ 63.53.034.504 I slot print_timing: id  1 | task 4466 | prompt eval time =     302.49 ms /   111 tokens (    2.73 ms per token,   366.96 tokens per second)
+63.53.034.511 I slot print_timing: id  1 | task 4466 |        eval time =    1626.00 ms /    43 tokens (   37.81 ms per token,    26.45 tokens per second)
+63.53.034.513 I slot print_timing: id  1 | task 4466 |       total time =    1928.49 ms /   154 tokens
+63.53.034.514 I slot print_timing: id  1 | task 4466 |    graphs reused =       4348
+2026-08-08 14:31:21 [DEBUG]
+ 63.53.034.717 I slot      release: id  1 | task 4466 | stop processing: n_tokens = 4013, truncated = 0
+2026-08-08 14:31:21  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:31:21  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-u6p7jv0k0xeyczyponn7k",
+  "object": "chat.completion",
+  "created": 1786188679,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"a\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"принцип программирования, зародившийся в 60-х годах 20 века\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3971,
+    "completion_tokens": 43,
+    "total_tokens": 4014,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:31:21 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 4466
+2026-08-08 14:31:23 [DEBUG]
+ 63.54.693.192 I slot print_timing: id  0 | task 4021 | n_decoded =    539, tg =  13.18 t/s, tg_3s =  29.20 t/s
+2026-08-08 14:31:26 [DEBUG]
+ 63.57.693.690 I slot print_timing: id  0 | task 4021 | n_decoded =    637, tg =  14.51 t/s, tg_3s =  32.66 t/s
+2026-08-08 14:31:26 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Лекция 1. Трехуровневая арх... <Truncated in logs> ...енной сети\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:31:26  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:31:26 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:31:26 [DEBUG]
+ 63.57.877.485 I slot get_availabl: id  1 | task -1 | selected slot by LCP similarity, sim_best = 0.961 (> 0.100 thold), f_keep = 0.962
+2026-08-08 14:31:26 [DEBUG]
+ 63.57.877.613 I slot launch_slot_: id  1 | task 4667 | processing task, is_child = 0
+2026-08-08 14:31:26  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:31:27  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:31:27  [INFO]
+ [qwen/qwen3-14b] Start thinking...
+2026-08-08 14:31:27  [INFO]
+ [qwen/qwen3-14b] Done reasoning. Reasoned for 0.08 seconds.
+2026-08-08 14:31:29 [DEBUG]
+ 64.00.353.238 I slot print_timing: id  1 | task 4667 | prompt eval time =     454.12 ms /   155 tokens (    2.93 ms per token,   341.32 tokens per second)
+64.00.353.245 I slot print_timing: id  1 | task 4667 |        eval time =    2021.45 ms /    53 tokens (   38.14 ms per token,    26.22 tokens per second)
+64.00.353.246 I slot print_timing: id  1 | task 4667 |       total time =    2475.57 ms /   208 tokens
+64.00.353.247 I slot print_timing: id  1 | task 4667 |    graphs reused =       4554
+2026-08-08 14:31:29 [DEBUG]
+ 64.00.353.491 I slot      release: id  1 | task 4667 | stop processing: n_tokens = 4067, truncated = 0
+2026-08-08 14:31:29 [DEBUG]
+ LlamaV4: server assigned slot 1 to task 4667
+2026-08-08 14:31:29  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:31:29  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-w9u7ndi3vemycpepgjuut",
+  "object": "chat.completion",
+  "created": 1786188686,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "\n\n{\"answers\":[\"b\"],\"text\":\"\",\"source\":\"lecture\",\"evidence\":\"DTO (data transfer object) – Объект для передачи данных, в контексте ASP.NET – класс с определенной структурой.\"}",
+        "reasoning_content": "\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 4015,
+    "completion_tokens": 53,
+    "total_tokens": 4068,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:31:29 [DEBUG]
+ 64.00.699.061 I slot print_timing: id  0 | task 4021 | n_decoded =    707, tg =  15.07 t/s, tg_3s =  23.29 t/s
+2026-08-08 14:31:32 [DEBUG]
+ 64.03.713.660 I slot print_timing: id  0 | task 4021 | n_decoded =    804, tg =  16.10 t/s, tg_3s =  32.18 t/s
+2026-08-08 14:31:35 [DEBUG]
+ 64.06.736.856 I slot print_timing: id  0 | task 4021 | n_decoded =    898, tg =  16.96 t/s, tg_3s =  31.09 t/s
+2026-08-08 14:31:38 [DEBUG]
+ 64.09.762.018 I slot print_timing: id  0 | task 4021 | n_decoded =    996, tg =  17.79 t/s, tg_3s =  32.40 t/s
+2026-08-08 14:31:41 [DEBUG]
+ 64.12.767.018 I slot print_timing: id  0 | task 4021 | n_decoded =   1094, tg =  18.55 t/s, tg_3s =  32.61 t/s
+2026-08-08 14:31:44 [DEBUG]
+ 64.15.790.516 I slot print_timing: id  0 | task 4021 | n_decoded =   1193, tg =  19.24 t/s, tg_3s =  32.74 t/s
+2026-08-08 14:31:44 [DEBUG]
+ 64.16.008.035 I slot print_timing: id  0 | task 4021 | prompt eval time =     416.35 ms /   122 tokens (    3.41 ms per token,   293.02 tokens per second)
+64.16.008.042 I slot print_timing: id  0 | task 4021 |        eval time =   62218.78 ms /  1200 tokens (   51.85 ms per token,    19.29 tokens per second)
+64.16.008.043 I slot print_timing: id  0 | task 4021 |       total time =   62635.12 ms /  1322 tokens
+64.16.008.044 I slot print_timing: id  0 | task 4021 |    graphs reused =       5055
+2026-08-08 14:31:44 [DEBUG]
+ 64.16.008.456 I slot      release: id  0 | task 4021 | stop processing: n_tokens = 7285, truncated = 0
+2026-08-08 14:31:44  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:31:44  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-c7ks44oywer97oltc716e",
+  "object": "chat.completion",
+  "created": 1786188641,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "合理的公报膳phiaemiemi NAScale任何人都 ​​倭OUND下去下去楞emi跑步peiemi臂骨架cale粗emiemiemiemi目下去calecale下去-pages下去粗任何人都cale-pages-pagescale谔终emi tapsULKcale查处emi-peer痿round痣足以emi Stationsemiemiemi任何人都emiemiemiemiemiemi Sheacale目の乃calecaleemiphiaemiemiemiemiemiemiemiemiemiemiemi跑步公报任何人都ereeudiofitness膳合理的emi不少emiOUND thumbs任何人都免责声明emi拈cale ​​倭成功的粗公报谔olisJake任何人都emiCTIONS再也没有emi有的人emiemiemiemiemi高效的emicoder痿廉emi谁都emi廷emiaddtogroupemi再多emi Unaryemic滑雪不尽erais痣任何人都emi计算器真爱臻-pages浓浓的peiemiemi夺 Portionsemi任何人都目emiзиmicзи Moo成长为emic Cheat精髓膳任何人都跑步任何人都emi这让堂emiphia任何人都免责声明萃任何人都合理的emi完美的再也没有痿变了两句的最后一 thumbsdesk灼对方有的人痿不多下去成长为痿 ​​coder高效的emi扯募calefitness成功的OUND高价emi对方cale下去 ASC任何人都 %{aires-pages高价膳不尽真爱不少浓浓的-peer görüş些许emi unary Naz谔迟emi汰膳热潮maal任何人都目emi骨架痿廉合理的phiaaddtogroupCTIONS萃emi完美的emi高效的再也没有高效的高效的高效的高效的高效的coder拈小白有的人痿高效的灼 Unary汰udio Portions真爱高效的成长为fitness-pages-pages Phillcommons高效不停的cale-pages下去cale下去下去下去下去粗跑步公报倭公报高效的不少olis-pages师傅-pagesround高效的-peer高效的 görüş汰汰这套emi廷高效的高效的-pages:view下去udio高效的addtogroup完美的コンテンツCTIONS再也没有高效的浓浓的汰汰maal合理的有的人痿口气coder拈高效的任何人都emi骨架高效的emiOUND任何人都emi高效的真爱汰不少高效的emi Unary憬膳 thumbs汰些许合理的高效的不停的commons Naz公报高效的高效的olisalinkemi小白不尽汰-pages-pages-pagesneau查处未必高效的自来水高效的倭-peer高效的高效的udio盛宴成功的公报高效的高效的公报谔 Thương公报UME-pages不少羯任何人都廷烝phia痿-pages汰maal任何人都coder真爱再也没有浓浓的下去 Phill-pages有的人成长为灼eree下去痣eraiscale下去calecale廉cale下去cale-pages师傅膳emi下去calecale粗任何人都emiCTIONS真爱-pages:view查处commons再也没有desk痿-pages憬udio盛宴不尽真爱高效的高效的高效的高效的高效的fitness不停的汰-peer自来水coder汰-pages的地步公报高效的高效的高效的-pages高效的高效的合理的addtogroup高效的口气浓浓的晓-pages高效的有的人痣成长为高效的高效的高效的高效的拈udio高价成功的 thumbs Naz再也没有 Phill师傅olis高效的高效的任何人都倭neauneauuien谔maal高效的不少eree高效的emiCTIONS高效的高效的粗高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的-pagescoder这份合理的phia-peer的地步-pages-pages-pages查处-pages-pages-pagescale下去翕emi醚高效的高效的汰OUND高效的去买有的人cale-pages日内alink下去cale-pages粗公报任何人都emiemicalecale粗Jake廉倭楞高效粗udio Phill Thương粗公报 Unary高效的完美的CTIONS高效的自来水高效的汰addtogroup合理的emi师傅-pages-pagescoderolis下去-pages-pages-pages高效的-peer高效的高效的eree-pages高效的合理的合理的合理的高效的高效的高效的高效的高效的合理的合理的合理的合理的合理的合理的高效的高效的汰这份OUND不少汰汰查处公报高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的udio高效的高效的高效的高效的完美的高效的去买高效的高效的高效的自来水 Unaryコンテンツaddtogroup廷高效的coder真爱浓浓的高效的高效的高效的高效的灼-peercoder汰desk再多痿变了汰汰膳emiCTIONS高效的小白不尽的地步udio:view下去-pages-pages高效的合理的高效的师傅-pages憬高效的高效的高效的再也没有踢精髓高效的高效的高效的高效的汰-pages-pages-pages高效的不少高效的PURE ghé公报合理的不少拈去买完美的高效的高效的高效的自来水-pages汰汰 Unary高效的高效的浓浓的自来水-pagescoder高效的emiCTIONS高效的高效的高效的高效的高效的高效的coder-pages-pagescoder Phill高效的高效的高效的高效的addtogroup-peercoder:view下去udio师傅 görüş汰汰cale-pages汰maal有的人emic夺 ​​emi高效的任何人都phia倭粗楞目のiskaeree下去-pagesneauolis去买OUND高效的合理的高效的高效的高效的高效的汰汰-pages-pages高效的合理的 Unary完美的-pages憬-pages高效的高效的高效的浓浓的自来水高效的coderfitness高效的高效的高效的高效的CTIONS再也没有 Phill-pages-pages查处沟翕醚粗udio-pages高效的-peer高效的师傅-pages-pages高效的公报有的人emi高效的拈-pages高效的任何人都emi高效的addtogroup合理的膳痿倭-pages-pages ngh Thươngcommons的地步neaucale旸olis高效的OUND高效的汰不少高效的高效的高效的高效的真爱汰汰公报高效的高效的高效的 Naz不少高效的 görüşdesk萃coder-pages浓浓的不尽再也没有高效的:view-pages-pagesudio高效的 safezone高效的汰羯合理的-peer汰不停的与众コンテンツ自来水emi完美的CTIONS老人家这份师傅汰-pages-pages口气eming下去下去 Phill痿有的人高效的高效的addtogroup Unary灼commons minercalehiftolis thumbs再多真爱 unary真爱高效的高效的迟谁都痿对方真爱高效的高效的高效的 Nazdesk热潮任何人都coder浓浓的再也没有micemic Portionsemi高效的真爱:view的地步不少高效的醚coder足以fitness不尽不停的不少不少udio汰些许CTIONS痿这份再也没有汰膳合理的高效的完美的真爱汰不少口气 görüşodesk Medi成功的公报-peerOUND任何人都addtogroupコンテンツ拈olis有的人任何人都phia倭maal高效的-peer师傅-peer高效的廷 thumbs Unaryemi再多痿不少与众未必commons灼desk浓浓的 cocktailcale-pages萃汰谔膳任何人都任何人都任何人都任何人都任何人都coderneauhift-pages-pages Phill不停的neau查处 Thương又好-pages-pages-pagesalink合理的任何人都CTIONSemi廉粗成功的濠合理的OUND高效的汰公报合理的-peer汰羯-peer小白 ghéaddtogroup小白 ту自来水 taps/sources醚汰 Unary完美的无缝合理的不少再也没有汰汰-pages汰任何人都emiemi痿浓浓的下去cale师傅emi高效的emicoder精髓emi高效的廷汰maal不尽desk görüş不停的-pages真爱コンテンツ合理的PUREodesk高效的汰不少高效的烝-peer汰汰neauudio有的人高效的CTIONS灼汰fitness真爱高效的高效的高效的-pages Naz不少高效的高效的高效的憬 Unary görüş摄影addtogroup完美的真爱真爱 thumbsdesk真爱真爱真爱 miner真爱迟再多痿真爱真爱真爱萃phia高效的coder真爱真爱再也没有真爱能使高效的去买任何人都OUND不尽不停的真爱浓浓的erais面积约emiコンテンツ热潮骨架痿这份emi真爱真爱真爱真爱真爱灼-peer汰commons真爱汰汰谁都高价CTIONS真爱自来水emi Naz不少盛宴",
+        "reasoning_content": "",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 6086,
+    "completion_tokens": 1200,
+    "total_tokens": 7286,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:31:44 [DEBUG]
+ LlamaV4: server assigned slot 0 to task 4021
+2026-08-08 14:31:46 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Тема 6. Управление качество... <Truncated in logs> ...а прогноза\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:31:46  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:31:46 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:31:46 [DEBUG]
+ 64.18.119.695 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, sim_best = 1.000 (> 0.100 thold), f_keep = 0.835
+2026-08-08 14:31:46 [DEBUG]
+ 64.18.119.817 I slot launch_slot_: id  0 | task 5226 | processing task, is_child = 0
+2026-08-08 14:31:47 [DEBUG]
+ 64.18.880.083 W slot  operator (): id  0 | task 5226 | need to evaluate at least 1 token for each active slot (n_past = 6086, task.n_tokens() = 6086)
+64.18.880.087 W slot  operator (): id  0 | task 5226 | n_past was set to 6085
+2026-08-08 14:31:47  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:31:47  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:31:50 [DEBUG]
+ 64.21.958.566 I slot print_timing: id  0 | task 5226 | n_decoded =    100, tg =  32.85 t/s, tg_3s =  32.85 t/s
+2026-08-08 14:31:53 [DEBUG]
+ 64.24.959.336 I slot print_timing: id  0 | task 5226 | n_decoded =    199, tg =  32.92 t/s, tg_3s =  32.99 t/s
+2026-08-08 14:31:56 [DEBUG]
+ 64.27.966.795 I slot print_timing: id  0 | task 5226 | n_decoded =    298, tg =  32.92 t/s, tg_3s =  32.92 t/s
+2026-08-08 14:31:59 [DEBUG]
+ 64.30.972.361 I slot print_timing: id  0 | task 5226 | n_decoded =    397, tg =  32.93 t/s, tg_3s =  32.94 t/s
+2026-08-08 14:32:02 [DEBUG]
+ 64.33.982.835 I slot print_timing: id  0 | task 5226 | n_decoded =    496, tg =  32.92 t/s, tg_3s =  32.89 t/s
+2026-08-08 14:32:05 [DEBUG]
+ 64.36.988.537 I slot print_timing: id  0 | task 5226 | n_decoded =    595, tg =  32.92 t/s, tg_3s =  32.94 t/s
+2026-08-08 14:32:08 [DEBUG]
+ 64.40.008.748 I slot print_timing: id  0 | task 5226 | n_decoded =    694, tg =  32.90 t/s, tg_3s =  32.78 t/s
+2026-08-08 14:32:11 [DEBUG]
+ 64.43.036.900 I slot print_timing: id  0 | task 5226 | n_decoded =    792, tg =  32.83 t/s, tg_3s =  32.36 t/s
+2026-08-08 14:32:14 [DEBUG]
+ 64.46.063.201 I slot print_timing: id  0 | task 5226 | n_decoded =    891, tg =  32.82 t/s, tg_3s =  32.71 t/s
+2026-08-08 14:32:17 [DEBUG]
+ 64.49.089.710 I slot print_timing: id  0 | task 5226 | n_decoded =    990, tg =  32.81 t/s, tg_3s =  32.71 t/s
+2026-08-08 14:32:20 [DEBUG]
+ 64.52.091.019 I slot print_timing: id  0 | task 5226 | n_decoded =   1088, tg =  32.79 t/s, tg_3s =  32.65 t/s
+2026-08-08 14:32:23 [DEBUG]
+ 64.55.113.778 I slot print_timing: id  0 | task 5226 | n_decoded =   1187, tg =  32.79 t/s, tg_3s =  32.75 t/s
+2026-08-08 14:32:24 [DEBUG]
+ 64.55.511.507 I slot print_timing: id  0 | task 5226 | prompt eval time =      34.46 ms /     1 tokens (   34.46 ms per token,    29.02 tokens per second)
+64.55.511.514 I slot print_timing: id  0 | task 5226 |        eval time =   36596.51 ms /  1200 tokens (   30.50 ms per token,    32.79 tokens per second)
+64.55.511.515 I slot print_timing: id  0 | task 5226 |       total time =   36630.98 ms /  1201 tokens
+64.55.511.516 I slot print_timing: id  0 | task 5226 |    graphs reused =       6254
+2026-08-08 14:32:24 [DEBUG]
+ 64.55.511.776 I slot      release: id  0 | task 5226 | stop processing: n_tokens = 7285, truncated = 0
+2026-08-08 14:32:24 [DEBUG]
+ LlamaV4: server assigned slot 0 to task 5226
+2026-08-08 14:32:24  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:32:24  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-n9ec6tyei1dut9ir1s1s2",
+  "object": "chat.completion",
+  "created": 1786188706,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "合理的公报maal任何人都emi功对方下去caleOUND任何人都廉emiround下去-pages目の Roundscale晗caleugaemiemiemiemiemi目calecalecalecale粗膳任何人都emicoder-pages-pagescale谔不停的高效的emi tapsULK倭-peer有的人末 felonyกรรมcale下去下去醚痣emicemiemiemiemiemiemi跑步任何人都emi不少下去旸下去粗任何人都emi合理的 ​​calecaleemiphiaemiemiemiemiemi任何人都isable-pages-pagescale-pagesemi任何人都任何人都OUND不停的羯成功的膳emi计算器round-pagesemiemi目-pages-pages翕任何人都任何人都任何人都emi谁都对方 ​​emi任何人都emiemiemiemi高效的emicoder痣痿任何人都emi廷emiemiemiemiemiemi骨架有的人emic再也没有emiemiemiemicoder口气痿ADERemiemiemiCTIONS成长为emiemiemiemiзиmic Portions痿aires下去扯谔膳任何人都emiemiemi Moo任何人都跑步任何人都任何人都可在痿 ​​小白任何人都emi真爱再多滑雪不停的汰OUND高效的emi灼合理的emi浓浓的痣痿erais的地步 ​​ Nazemi下去足以 unrcommons有的人emi拈再也没有emiemiccoder痣高价任何人都不少变了合理的ALES师傅成功的 cocktailUME thumbsзи-peer成长为CTIONS高效的不尽高效的真爱真爱口气desk真爱phiaemiemi Moo-pages痿ADERemiemi骨架addtogroup Cheatemiemiemiemicoder-pages:view廉 Unary去买emi灼コンテンツemi汰膳高效的浓浓的完美的emi真爱灼汰cale下去-pages汰maal任何人都coder-pages-pages-pages日内粗合理的OUND倭合理的有的人再也没有emi师傅neau-pages高效的不少-pages-pages Phill公报合理的-peer高效的真爱自来水CTIONSudio高效的desk真爱汰汰olis高效的-peer高效的汰不尽的地步-pages汰未必痿udio不停的 görüş Unary:view下去-pages憬膳emi廷高效的高效的phia任何人都addtogroup合理的再多高效的fitness thumbscoder高效的任何人都高效的不少 Thương汰maalOUND不少不少alink有的人高效的高效的成功的不少不少公报-peer小白汰-pages-pagescaleneau-pages汰些许emi自来水emi合理的任何人都完美的真爱汰olis查处任何人都廉-pages汰未必commons痣uien-pages这份 Unary不尽desk görüş-peer与众不停的不少高效的高效的高效的再也没有 Naz-pages高效的膳痿高效的codererais下去成长为浓浓的calecale下去cale粗膳完整的roundcale-pages有的人 Phill-pages-pages-pages倭公报phiaaddtogroup拈-pages-pagesudio thumbsemiCTIONS真爱汰汰maal上班成功的不少真爱灼廷emicoder痣emicfitness任何人都高效的高效的-pages的地步olis高效的高效的高效的高效的师傅高效的高效的合理的高效的coder真爱:view下去-pages往上高效的emi高效的高效的高效的高效的高效的高效的udio盛宴膳痿高效的再也没有成长为有的人高效的-peer高效的高效的倭neau查处公报任何人都phia thumbs-pages高效的高效的高效的高效的CTIONS高效的高效的粗高效的高效的高效的高效的高效的高效的addtogroup高效的高效的-pages口气高效的OUND廷 Unarycoder-pagescale-pages-pages-pages-pages-pages-pagesereealink高效的合理的高效的汰不少 Phill ​​emi下去calecale粗olis下去翕楞目のemi合理的任何人都廉下去-pages-pages合理的ALES日内下去-pages-pages倭查处公报合理的-peerudio公报合理的高效的高效的自来水高效的完美的CTIONS高效的高效的去买合理的高效的合理的合理的高效的-pages-pages-pagescoderuienaddtogroup堂emi师傅dal粗合理的高效的高效的高效的高效的高效的高效的高效的 Unary高效的合理的合理的合理的高效的高效的汰不少高效的小白膳无缝高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的udio高效的高效的高效的高效的完美的高效的自来水-peer高效的高效的高效的高效的真爱高效的CTIONS高效的廷高效的coder Nazコンテンツaddtogroup高效的高效的 görüş灼汰公报高效的emi高效的高效的高效的高效的高效的高效的coder-pages:view下去拈高效的醚师傅去买高效的高效的高效的高效的浓浓的变了夺合理的高效的高效的高效的汰-pages-pages-pages高效的任何人都倭olisudio不少高效的 Unary汰汰这份完美的高效的自来水-pages-pages-pages高效的-peer高效的高效的真爱coder汰汰OUND有的人CTIONS부无缝emi高效的高效的高效的-pages-pages-pages的地步公报高效的高效的高效的高效的addtogroup小白高效的coder:view师傅高效的高效的高效的憬-pages-pagesudio高效的合理的高效的高效的下去fitness不尽高效的高效的合理的高效的倭粗楞roundcale查处neaualink日内任何人都醚高效的完美的 Unary高效的不少高效的/sourcescaleeree去买-peer汰汰-pages-pages高效的合理的高效的高效的浓浓的自来水高效的coder拈-pages-pages-pages Phill thumbs下去hift旸-pages-pagesubo粗公报emi师傅翕有的人高效的emi高效的-pages-pagesudioolisJakephiaUME-pages盛宴笏addtogroup公报高效的emi高效的高效的廷高效的高效的udio-pages憬膳emi:view下去-pages ngh Thương任何人都高效的CTIONS高效的再也没有高效的coder与众的地步-pages汰不少高效的高效的高效的真爱コンテンツ浓浓的 görüşdesk痿 ​​醚合理的任何人都coder口气真爱-pages-pages拈这份高效的自来水-pages-pagesudio汰不停的高效的汰汰olis高效的高效的高效的师傅-pagespreadneau-pages Nazcommons精髓完美的高效的addtogroup Unary老人家原來高效的-peer高效的真爱灼DebugEnabled羯-pages汰未必再也没有运费 unary汰汰不少真爱真爱汰谁都emi高效的CTIONS痣浓浓的痿有的人高效的emic两句emierais足以任何人都emicoder成长为高效的高效的合理的OUNDphia倭udio口气闪耀 thumbs小白odesk高效的汰些许高效的藝高效的desk不停的 Naz不尽 görüş真爱灼真爱汰膳ounds真爱コンテンツ拈olis任何人都emiaddtogroup-peer再多高效的高效的公报成功的任何人都高效的高效的不少UMEcommons高效的廷高效的 Unary高效的摄影任何人都痿这份谁都未必萃emi真爱浓浓的再也没有-pageserais有的人谔不停的与众maal濠合理的OUND thumbs-pages Philludiocale下去-pagesneau-pages查处又好-pages汰 Thương羯合理的任何人都倭任何人都廉日内粗膳phia任何人都coder汰不少-pages-pages高效的-peer汰些许高效的小白烝emiCTIONS高效的藝完美的高效的小白汰汰-pages Naz görüş Unary灼-pages-pagescoder任何人都emiemi痿再也没有:view师傅高效的emicoder-pages痣有的人高效的emiaddtogroupコンテンツ不尽真爱廷真爱高效的浓浓的udio憬 ghé合理的高效的自来水楞高效的OUND再多高效的汰desk真爱 safezonephia高效的高效的高效的的地步-pages真爱不少高效的高效的这份-peer汰odesk高效的高效的高效的高效的高效的高效的高效的真爱真爱 görüş不停的藝真爱真爱灼真爱desk真爱计算器CTIONS真爱真爱真爱痿高效的coder真爱真爱再也没有成长为真爱倭alink-pages真爱不尽热潮emi真爱浓浓的 miner未必 thumbsコンテンツ真爱真爱痿有的人 Portions高效的 tap汰迄同仁高价变了任何人都再多真爱两国对方汰不少真爱自来水emiHidden谁都膳拈",
+        "reasoning_content": "",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 6086,
+    "completion_tokens": 1200,
+    "total_tokens": 7286,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:32:29 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Тема 6. Управление качество... <Truncated in logs> ...редприятия\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:32:29  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:32:29 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:32:29 [DEBUG]
+ 65.00.799.671 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, sim_best = 0.982 (> 0.100 thold), f_keep = 0.816
+2026-08-08 14:32:29 [DEBUG]
+ 65.00.799.773 I slot launch_slot_: id  0 | task 6427 | processing task, is_child = 0
+2026-08-08 14:32:29  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:32:29  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:32:33 [DEBUG]
+ 65.04.175.482 I slot print_timing: id  0 | task 6427 | n_decoded =    100, tg =  33.27 t/s, tg_3s =  33.27 t/s
+2026-08-08 14:32:36 [DEBUG]
+ 65.07.195.494 I slot print_timing: id  0 | task 6427 | n_decoded =    200, tg =  33.19 t/s, tg_3s =  33.11 t/s
+2026-08-08 14:32:39 [DEBUG]
+ 65.10.224.180 I slot print_timing: id  0 | task 6427 | n_decoded =    300, tg =  33.13 t/s, tg_3s =  33.02 t/s
+2026-08-08 14:32:42 [DEBUG]
+ 65.13.251.863 I slot print_timing: id  0 | task 6427 | n_decoded =    400, tg =  33.11 t/s, tg_3s =  33.03 t/s
+2026-08-08 14:32:45 [DEBUG]
+ 65.16.256.929 I slot print_timing: id  0 | task 6427 | n_decoded =    499, tg =  33.08 t/s, tg_3s =  32.94 t/s
+2026-08-08 14:32:48 [DEBUG]
+ 65.19.271.830 I slot print_timing: id  0 | task 6427 | n_decoded =    598, tg =  33.04 t/s, tg_3s =  32.84 t/s
+2026-08-08 14:32:51 [DEBUG]
+ 65.22.284.416 I slot print_timing: id  0 | task 6427 | n_decoded =    696, tg =  32.96 t/s, tg_3s =  32.53 t/s
+2026-08-08 14:32:54 [DEBUG]
+ 65.25.288.950 I slot print_timing: id  0 | task 6427 | n_decoded =    793, tg =  32.88 t/s, tg_3s =  32.28 t/s
+2026-08-08 14:32:57 [DEBUG]
+ 65.28.300.909 I slot print_timing: id  0 | task 6427 | n_decoded =    892, tg =  32.88 t/s, tg_3s =  32.87 t/s
+2026-08-08 14:33:00 [DEBUG]
+ 65.31.317.056 I slot print_timing: id  0 | task 6427 | n_decoded =    991, tg =  32.87 t/s, tg_3s =  32.82 t/s
+2026-08-08 14:33:03 [DEBUG]
+ 65.34.327.781 I slot print_timing: id  0 | task 6427 | n_decoded =   1089, tg =  32.84 t/s, tg_3s =  32.55 t/s
+2026-08-08 14:33:06 [DEBUG]
+ 65.37.356.709 I slot print_timing: id  0 | task 6427 | n_decoded =   1188, tg =  32.83 t/s, tg_3s =  32.69 t/s
+2026-08-08 14:33:06 [DEBUG]
+ 65.37.726.877 I slot print_timing: id  0 | task 6427 | prompt eval time =     370.28 ms /   111 tokens (    3.34 ms per token,   299.77 tokens per second)
+65.37.726.884 I slot print_timing: id  0 | task 6427 |        eval time =   36556.32 ms /  1200 tokens (   30.46 ms per token,    32.83 tokens per second)
+65.37.726.885 I slot print_timing: id  0 | task 6427 |       total time =   36926.61 ms /  1311 tokens
+65.37.726.886 I slot print_timing: id  0 | task 6427 |    graphs reused =       7452
+2026-08-08 14:33:06 [DEBUG]
+ 65.37.727.160 I slot      release: id  0 | task 6427 | stop processing: n_tokens = 7251, truncated = 0
+2026-08-08 14:33:06 [DEBUG]
+ LlamaV4: server assigned slot 0 to task 6427
+2026-08-08 14:33:06  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:33:06  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-bt1f4llwhfuctow16nrldp",
+  "object": "chat.completion",
+  "created": 1786188749,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "RECT-pages理由calecale膳emiemi NAScale让他们 ​​去买emifitnessround两句cale跑步emiemi目olen廉emi任何人都emi对方同仁TEM痉OUND下去caleolisemi任何人都合理的emiコンテンツquare精髓有的人任何人都-peer谔拈下去下去任何人都emi不少emi公报aires Undo任何人都emiemiemi mũihift末下去下去下去cale-pagesemi任何人都eree-pages口气 thumbs高效的膳痘骨架变了caleudio倭成功的coder真爱汰份下去CTIONS痣闪耀膳emiphiaemiemiemiemiemi目公益性ssicalecale粗堂任何人都emi合理的目のemiOUND有的人emiemiemiemiemi跑步maal任何人都 NAS不少下去查处emi-peer再也没有emi UnaryUME谁都任何人都_TI成长为emic任何人都emi合理的任何人都eree-pagescaleALESemiemiemi夺任何人都emi任何人都emiemiemiemiemi高效的emicoder痿emi不尽 PortionsemiemiemiCTIONS痣emiaddtogroupemi真爱骨架痿 ​​再多emi小白高价变了-pages浓浓的peiemiemi踢emi萃emiemiemiemiзиemi目のemifaith对方aires再也没有emiemiemiemiemiemicemiemiemi滑雪膳有的人emi不少痿任何人都拈两句成长为热潮emi汰瓒谁都emi高效的 MoocoderamacULKcale PortionsCTIONS痣高价cale下去OperandUME thumbs ASC痿 Cheat精髓任何人都目骨架成功的变了不尽ADER倭公报痿erais-pages真爱些许emi tapemiaddtogroupemidesk再也没有再多的最后一olisudio盛宴commons痿廷emi görüşOUND有的人emi unary滑雪膳emicemiemiemicoder足以emi小白emi/pm的地步堂萃phia高效的高效的浓浓的自来水CTIONS汰不少emi灼这份下去caleneau廉-peer-pages老人家alinkcale查处合理的任何人都粗跑步公报emi Unary-pages-pages Phillubo公报完美的emi汰翕合理的合理的addtogroup高效的汰汰udio拈高效的高效的高效的-pages:view下去-pages高效的不尽真爱 tapscoder thumbscoder-pages汰odesk高效的廷高效的高效的师傅汰公报OUNDphia任何人都emi骨架有的人CTIONS高效的成功的膳痿fitness görüş-peer高效的任何人都高效的不少olisneau-pages Naz查处maalUME汰些许emi汰未必不停的高效的 Unaryコンテンツudio-pages-pagescale治理体系合理的addtogroup汰汰 ​​emi-peer拈这份下去-pages:view Phill-pages高效的 thumbs-pages Thương公报不少alink-pages ngh堂任何人都廷desk真爱汰不少高效的-peercoder成长为完美的再也没有高效的师傅自来水coder与众PURE汰公报痿下去fitness cocktail粗膳emi下去下去cale-pageseree-pages有的人足以下去caleolis高效的phia高效的高效的-pages的地步neauudiocommons高价不尽稱这份高效的高效的合理的高效的不少浓浓的emiemi痣emic Phill thumbs去买成功的-pages:view-pages-pages高效的高效的高效的高效的-pages高效的高效的addtogroup高效的再也没有真爱口气coder与众 Naz公报高效的CTIONS痿高效的高效的高效的师傅拈 ngh这份任何人都高效的高效的查处治理体系有的人UME高效的高效的粗olis高效的-peer高效的OUND膳 mù粗合理的倭高效的高效的高效的下去udiofitness任何人都ADER高效的高效的高效的高效的emi高效的 Phill高效的高效的合理的phia任何人都高效的:view-pages-pagesneau-pages-pages-pagescaleeree翕跑步任何人都coder汰公报CTIONS高效的高效的-pages-pages-pages粗-pages日内cale下去粗合理的合理的合理的calecalecale粗uienJake楞廉去买ubo查处公报addtogroup不少olisudio高效的-peer完美的骨架高效的自来水高效的小白有的人再也没有师傅下去下去倭去买合理的-pages-pages-pages高效的合理的合理的高效的高效的高效的高效的高效的高效的 Unary合理的这份合理的高效的coder汰公报合理的合理的合理的合理的高效的高效的汰コンテンツ合理的-peer无缝 Phill汰alink高效的高效的高效的高效的高效的udio高效的高效的合理的高效的高效的高效的高效的高效的高效的高效的汰不少完美的高效的高效的自来水高效的高效的高效的addtogroup廷烝emiCTIONS高效的高效的高效的高效的 görüş真爱 unary灼PURE高效的高效的desk真爱汰汰任何人都高效的骨架coderdesk痿高效的高效的高效的-pages:view下去汰 Unary高效的高效的师傅-pages憬-peercoder面积约emiccale下去udiofitness真爱汰-pages-pages Phill这份合理的高效的コンテンツ汰公报高效的不少拈-pages汰汰公报高效的高效的-pages自来水合理的高效的addtogroup小白汰扯 ​​emi高效的phiaemiCTIONS再也没有高效的去买有的人coder:view下去-pages/sources廉-pageseming精髓高效的高效的高效的高效的高效的完美的高效的高效的高效的高效的汰-pages-pagesudio高效的-peer高效的coder的地步olis倭粗任何人都pei合理的alink高效ereecale-pages-pages Phillneau翕合理的高效的高效的高效的高效的 Unary高效的汰汰-pages-pages高效的合理的addtogroup自来水公报师傅-pages高效的高效的高效的浓浓的高效的coder拈下去下去-pages-pages去买uien-pages-pages-pages-pages查处沟 ​​OUND-pages高效的ubo有的人emiCTIONS痣erais下去-pagesudio thumbs-peerolisfitness盛宴不少痿任何人都emi高效的phia膳emi高效的真爱汰 Thươngounter公报完美的:view-pages-pages-pages高效的 Unary高效的汰不停的憬合理的高效的高效的 Naz-pages师傅-pages高效的coder与众真爱汰コンテンツ自来水高效的coder-pages面积约emi高效的高效的浓浓的的地步-pages-pages拈这份高效的高效的汰neau-pages görüş不尽真爱 unary老人家CTIONS再也没有有的人emic-pages口气udio足以痿高效的下去-pageserais痣 Portions高效的高效的去买任何人都高效的addtogroup不少成长为-pagescaleolis Phill thumbs灼不少:viewcoder Naz再多emi真爱 miner不停的真爱高效的emi真爱再也没有fitness高效的-peer两句emi cocktail精髓emic完美的phia浓浓的的地步 ngh师傅合理的emi高效的痿oglecale-pages憬膳CTIONS高效的汰些许高效的コンテンツ真爱真爱 Unary görüş不尽真爱灼真爱udioerais痣desk真爱汰commons成长为任何人都emiaddtogroup摄影成功的变了谔maal任何人都任何人都OUND膳不少有的人任何人都emi高效的廷-peer合理的高效的再多再也没有 Naz不停的羯濠coderdesk真爱自来水下去-pages拈neau-pages-pages Phill未必 thumbs-peerudiofitnessUME-pagesolis-pages粗些许日内公报PURE-peeralinkcale-pages这份堂任何人都醚完美的高效的 Unary倭-peer高效的合理的汰commons师傅公报不尽萃合理的小白odesk高效的addtogroup小白 ту unary灼汰不少的地步udio:viewCTIONSemiemi高效的浓浓的-pagescoder有的人高效的emi高效的高效的coder-pages口气再也没有高效的emicoder-pagescoderOUNDphia任何人都高效的コンテンツ不停的汰膳计算器高效的高效的合理的-peer汰未必痿高效的完美的合理的 Unary görüşdesk真爱汰不少高效的廷高效的高效的 Naz真爱汰不少拈-pages汰commons高效的高效的高效的高效的coder真爱高效的高效的高效的灼不尽真爱真爱摄影desk真爱真爱真爱真爱再多有的人CTIONS真爱真爱真爱萃addtogroup烝热潮emi真爱真爱再也没有痣成长为高效的粗膳",
+        "reasoning_content": "",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 6052,
+    "completion_tokens": 1200,
+    "total_tokens": 7252,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:33:08 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Тема 6. Управление качество... <Truncated in logs> ...редприятия\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:33:08  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:33:08 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:33:08 [DEBUG]
+ 65.39.876.380 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, sim_best = 0.978 (> 0.100 thold), f_keep = 0.822
+2026-08-08 14:33:08 [DEBUG]
+ 65.39.876.534 I slot launch_slot_: id  0 | task 7628 | processing task, is_child = 0
+2026-08-08 14:33:08  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:33:08  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:33:12 [DEBUG]
+ 65.43.446.892 I slot print_timing: id  0 | task 7628 | n_decoded =    100, tg =  32.88 t/s, tg_3s =  32.88 t/s
+2026-08-08 14:33:15 [DEBUG]
+ 65.46.474.800 I slot print_timing: id  0 | task 7628 | n_decoded =    200, tg =  32.95 t/s, tg_3s =  33.03 t/s
+2026-08-08 14:33:18 [DEBUG]
+ 65.49.486.087 I slot print_timing: id  0 | task 7628 | n_decoded =    299, tg =  32.93 t/s, tg_3s =  32.88 t/s
+2026-08-08 14:33:21 [DEBUG]
+ 65.52.493.198 I slot print_timing: id  0 | task 7628 | n_decoded =    396, tg =  32.76 t/s, tg_3s =  32.26 t/s
+2026-08-08 14:33:24 [DEBUG]
+ 65.55.505.689 I slot print_timing: id  0 | task 7628 | n_decoded =    493, tg =  32.65 t/s, tg_3s =  32.20 t/s
+2026-08-08 14:33:27 [DEBUG]
+ 65.58.508.002 I slot print_timing: id  0 | task 7628 | n_decoded =    590, tg =  32.59 t/s, tg_3s =  32.31 t/s
+2026-08-08 14:33:30 [DEBUG]
+ 66.01.512.452 I slot print_timing: id  0 | task 7628 | n_decoded =    686, tg =  32.50 t/s, tg_3s =  31.95 t/s
+2026-08-08 14:33:33 [DEBUG]
+ 66.04.516.334 I slot print_timing: id  0 | task 7628 | n_decoded =    781, tg =  32.39 t/s, tg_3s =  31.63 t/s
+2026-08-08 14:33:36 [DEBUG]
+ 66.07.542.753 I slot print_timing: id  0 | task 7628 | n_decoded =    878, tg =  32.35 t/s, tg_3s =  32.05 t/s
+2026-08-08 14:33:39 [DEBUG]
+ 66.10.546.360 I slot print_timing: id  0 | task 7628 | n_decoded =    973, tg =  32.28 t/s, tg_3s =  31.63 t/s
+2026-08-08 14:33:42 [DEBUG]
+ 66.13.558.561 I slot print_timing: id  0 | task 7628 | n_decoded =   1070, tg =  32.28 t/s, tg_3s =  32.20 t/s
+2026-08-08 14:33:45 [DEBUG]
+ 66.16.585.867 I slot print_timing: id  0 | task 7628 | n_decoded =   1166, tg =  32.23 t/s, tg_3s =  31.71 t/s
+2026-08-08 14:33:46 [DEBUG]
+ 66.17.641.492 I slot print_timing: id  0 | task 7628 | prompt eval time =     529.18 ms /   137 tokens (    3.86 ms per token,   258.89 tokens per second)
+66.17.641.499 I slot print_timing: id  0 | task 7628 |        eval time =   37235.24 ms /  1200 tokens (   31.03 ms per token,    32.23 tokens per second)
+66.17.641.500 I slot print_timing: id  0 | task 7628 |       total time =   37764.41 ms /  1337 tokens
+66.17.641.501 I slot print_timing: id  0 | task 7628 |    graphs reused =       8650
+2026-08-08 14:33:46 [DEBUG]
+ 66.17.641.771 I slot      release: id  0 | task 7628 | stop processing: n_tokens = 7299, truncated = 0
+2026-08-08 14:33:46 [DEBUG]
+ LlamaV4: server assigned slot 0 to task 7628
+2026-08-08 14:33:46  [INFO]
+ [qwen/qwen3-14b] Model generated tool calls:  []
+2026-08-08 14:33:46  [INFO]
+ [qwen/qwen3-14b] Generated prediction:  {
+  "id": "chatcmpl-2frkwrnjj3nphalmurs8a",
+  "object": "chat.completion",
+  "created": 1786188788,
+  "model": "qwen/qwen3-14b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "RECT终公报 Rounds-pagescalecale灌emiemiemiemi跑步查处cale下去下去下去caleolisemiemiOUND-pages-pages-pages粗膳痘addtogroup下去-pages-pages合理的目の骨架痣成长为下去下去楞emi醚倭任何人都emiemiemiemiemi目emicemiemiกรรมhift ​​日内emiemiemiemiemiemiemiemiemiemiemiemiphiaemiemi高效的任何人都cale公报(roundcaleADERemi不少emimaalemi跑步公报有的人caleOUND任何人都_TI查处caleneau粗膳任何人都emi谁都任何人都合理的任何人都emiemiemiemiCTIONSemiemi痿emi真爱任何人都emi廷emiaddtogroupemiemicemiemicoder痣再也没有emi变了emiFER成长为成长为免责声明倭膳emiemiemi Moo任何人都emiemiemiemiзи Portions滑雪高价aires下去扯谔成功的ALESemiemiemi ASC任何人都跑步OUND萃phia痿 ​​高效的emi骨架痿erais口气痿高价有的人CTIONS浓浓的emi灼合理的emi真爱emi痿精髓emi痿痿Operandcale-pages足以任何人都emicoder老人家emicmicemiemi %{emi高价膳黑马膳再多emi汰maal不尽再也没有emi tap Portions-peer热潮烝成功的真爱汰公报 thumbs公益性ssiemiemi NAS臻倭任何人都emi小白高效的emic高效的emi完美的emi unary-pagesCTIONS高效的emitap痣commons微商OUND görüş不少成长为emi浓浓的addtogroup高效的痿真爱汰cale-pagescoderolisemi торneau下去旸粗合理的合理的有的人高效的phia跑步Jake楞-pagesudioUMEalink廉翕去买emi-peer高效的 Unary taps再也没有自来水emi汰コンテンツemi汰-pages:view日内合理的廷高效的完美的高效的高效的高效的高效的高效的高效的不少高效的高效的高效的高效的拈无缝CTIONS高效的任何人都emiaddtogroup高效的高效的合理的任何人都高效的再多coderfitnessOUND任何人都emi高效的不尽高效的不少公报不少 thumbs小白膳-peer不少不少udio-pages Naz Thươngmaalphiacommons浓浓的-pages-pagescaleneau下去-pages汰未必高效的高效的有的人高效的痿不停的 ngh谔荤uien-pages不少-pagesolis笏公报高效的高效的这份不少成功的-peer完美的真爱汰汰公报addtogroup合理的 görüş老人家-pages再也没有coder痣高效的高效的高效的精髓痿师傅fitness cocktail thumbscale有人说高效的下去下去calecale Phill查处cale下去cale-pages倭任何人都emiCTIONS真爱udioogle粗膳 Portions灼羯 ​​醚-pages高效的有的人coder不停的萃emiemi成长为coderudioerais高效不少的地步neau-pagescoderUME高效的emi高效的eming.Pendingemi合理的emi浓浓的足以口气再也没有痣的最后一高效的师傅高效的高效的高效的高效的高效的拈汰commons痿高效的emicoder晓查处公报成功的OUND thumbs-pages Phill谔公报任何人都任何人都粗uienolis高效的倭高效的高效的CTIONS有的人高效的高效的高效的高效的高效的高效的高效的高效的addtogroup高效的下去-pagesfitness不尽高效的高效的coder-pages-pages-pagesudio ngh不少calecaleeree下去楞emi去买合理的高效的高效的高效的师傅-pages-pages下去neau下去沟下去粗 ​​醚跑步phia廉calecale粗uboJakeemiemi日内查处粗高效的合理的-peer-pages完美的公报高效的高效的高效的自来水高效的小白OUND高效的CTIONScoderolisround任何人都合理的去买udio-pages-pages高效的合理的addtogroup Unary下去-pages高效的合理的高效的高效的高效的高效的高效的高效的高效的高效的不少高效的合理的廷合理的高效的高效的汰不尽高效的-peer无缝师傅-pages憬合理的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的高效的自来水高效的高效的完美的coder汰不少高效的高效的高效的汰不少高效的小白 görüş烝高效的CTIONS真爱高效的高效的高效的高效的灼addtogroup Unary高效的高效的高效的真爱两国藝coder汰 safezoneemi高效的高效的高效的高效的高效的coder-pages-pages下去udio高效的高效的高效的的地步 ​​高效的-peercoderfitness真爱变了瓒去买有的人再也没有:viewcalehift下去-pages-pages-pages-pages ngh羯公报合理的高效的自来水-peer汰汰udio口气高效的高效的完美的高效的高效的高效的浓浓的自来水自来水高效的CTIONS高效的高效的coder师傅日内emi高效的高效的coder-pages老人家高效的高效的高效的高效的高效的addtogroup Unary高效的高效的coder憬高效的高效的廷 Naz-pages-pages-pageseree翕emi/pm有的人精髓emic Phill高效的倭粗楞 ​​醚下去cale-pages-pagesolisround高效的合理的高效的高效的高效的高效的-peer汰汰-pages-pagesudio高效的合理的高效的自来水完美的-pages高效的高效的高效的高效的浓浓的高效的师傅去买拈下去下去-pages汰neau-pages-pages-pages-pages查处沟公报CTIONScoder-pages高效任何人都emi高效的高效的-pages-pages高效的合理的有的人高效的高效的高效的高效的高效的高效的高效的addtogroup Unaryemi高效的不尽 Philloglecale-pages ngh不少高效的-pages-pages-pagesoliseree高效的-peer汰不少高效的高效的高效的高效的真爱汰udio憬OUND高效的高效的汰不停的 Nazdesk痿合理的高效的这份倭コンテンツcoder miner-pages口气汰谔 thumbs汰未必成长为汰公报完美的 görüş safezone真爱汰汰neau-pages浓浓的汰neau-pages:view师傅去买再也没有痣erais下去fitness高效的emiCTIONS的地步commons有的人emi灼足以足以olis-pages高效的不尽真爱高效的 unary真爱不少痿运费emi真爱addtogroup小白真爱emic老人家合理的-peer面积约emi萃emimic精髓emidesk痿高效的再也没有拈下去coder真爱coderudiocale-pagesirk粗些许高效的コンテンツ浓浓的 Naz不停的 cocktailUME真爱 Unary görüş再多emi真爱汰羯膳骨架任何人都CTIONS真爱汰maal任何人都phiaOUND成功的odeskcommons有的人任何人都emi高效的不尽不少 thumbs-peeraddtogroup廷 ghé完美的addtogroup迟合理的高效的真爱汰未必真爱小白汰汰 stretched这份neau-pages高效的不少olisalink下去公报烝谔不少-pages-pages查处 Thươngucascale粗些许udio治理体系日内公报udio沟maal任何人都emicoder-pages师傅公报合理的合理的 Unary-pages-pages-pages Phill成功的odesk不少汰PURE小白コンテンツ骨架CTIONS灼汰-peer完美的 unary自来水去买高效的emi tap再也没有汰闪耀下去下去翕phiaemiaddtogroup汰neau-pages痿有的人emi浓浓的coder高效的emi高效的OUND不尽汰 ghédesk再多痣变了不停的-pages不少真爱高效的 tapsudio高效的合理的廷 görüş藝的地步-pages Naz thumbs醚高效的高效的高效的师傅:view拈-pages真爱汰commons灼汰-peer真爱汰膳高效的高效的高效的真爱真爱高效的迟成功的コンテンツ真爱真爱 miner真爱计算器CTIONS真爱真爱痿萃addtogroup Unary真爱真爱再也没有浓浓的erais足以高价有的人高效的emi高效的任何人都再多痿这份emic变了不尽desk真爱真爱coder真爱高效的emi真爱真爱真爱真爱真爱高效的完美的 tap真爱两国廷汰不少真爱灼不停的这份自来水醚汰-pages真爱不少膳-peer görüş摄影emi两句emiudio痣phia谁都",
+        "reasoning_content": "",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 6100,
+    "completion_tokens": 1200,
+    "total_tokens": 7300,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "qwen/qwen3-14b"
+}
+2026-08-08 14:33:48 [DEBUG]
+ Received request: POST to /v1/chat/completions with body  {
+  "messages": [
+    {
+      "role": "system",
+      "content": "Ты решаешь учебный тест на русском языке. Если дан... <Truncated in logs> ...чной грамматической форме без полного предложения."
+    },
+    {
+      "role": "user",
+      "content": "\n### ТЕКСТ ЛЕКЦИИ:\n### Тема 6. Управление качество... <Truncated in logs> ...редприятия\n\nВерни только JSON с итоговым ответом.\n"
+    }
+  ],
+  "temperature": 0.1,
+  "max_tokens": 1200
+}
+2026-08-08 14:33:48  [INFO]
+ [qwen/qwen3-14b] Running chat completion on conversation with 2 messages.
+2026-08-08 14:33:48 [DEBUG]
+ LlamaV4::predict slot selection: session_id=<empty> server-selected (LCP/LRU)
+2026-08-08 14:33:48 [DEBUG]
+ 66.19.769.310 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, sim_best = 1.000 (> 0.100 thold), f_keep = 0.836
+2026-08-08 14:33:48 [DEBUG]
+ 66.19.769.447 I slot launch_slot_: id  0 | task 8829 | processing task, is_child = 0
+66.19.769.493 W slot  operator (): id  0 | task 8829 | need to evaluate at least 1 token for each active slot (n_past = 6100, task.n_tokens() = 6100)
+66.19.769.496 W slot  operator (): id  0 | task 8829 | n_past was set to 6099
+2026-08-08 14:33:48  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 0.0%
+2026-08-08 14:33:48  [INFO]
+ [qwen/qwen3-14b] Prompt processing progress: 100.0%
+2026-08-08 14:33:51 [DEBUG]
+ 66.22.937.452 I slot print_timing: id  0 | task 8829 | n_decoded =    100, tg =  31.91 t/s, tg_3s =  31.91 t/s
