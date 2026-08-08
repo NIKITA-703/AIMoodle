@@ -11,17 +11,23 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from app.ai_utils import clean_html_to_text, save_text_file
+from app.ai_utils import clean_html_to_text, is_context_error_text, save_text_file
 from app.browser_utils import sanitize_filename
 
 
 def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
+    """Backward-compatible helper returning the first matching material."""
+    urls = find_lecture_urls(driver, target_topic_name, test_name=test_name, timeout=timeout)
+    return urls[0] if urls else None
+
+
+def find_lecture_urls(driver, target_topic_name, test_name=None, timeout=10):
     """
     Ищет лекцию в блоках 'Ресурсы' (resource) и 'Лекции' (lesson).
     Игнорирует различия 'Тема'/'Лекция'.
     """
     if not target_topic_name:
-        return None
+        return []
 
     wait = WebDriverWait(driver, timeout)
     print(f"🔎 Ищем материал для темы: '{target_topic_name}'...")
@@ -47,7 +53,8 @@ def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
     print(f"   (debug) Ищем суть: '{target_clean}'")
 
     section_types = ["resource", "lesson", "page"]
-    found_candidates = []
+    numbered_candidates = []
+    named_candidates = []
 
     for section in section_types:
         try:
@@ -78,9 +85,11 @@ def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
 
                     if target_number:
                         res_num = extract_number(resource_name)
-                        if res_num == target_number:
-                            print(f"✅ Найдено по номеру {target_number}: '{resource_name}'")
-                            return url
+                        if (
+                            _is_numbered_lecture_material(resource_name)
+                            and _lecture_number_matches(target_number, res_num)
+                        ):
+                            numbered_candidates.append((res_num, resource_name, url))
 
                     if (
                         target_clean == resource_clean
@@ -88,19 +97,58 @@ def find_lecture_url(driver, target_topic_name, test_name=None, timeout=10):
                         or (len(resource_clean) > 5 and resource_clean in target_clean)
                     ):
                         print(f"✅ Найдено в разделе '{section}': '{resource_name}' -> {url}")
-                        found_candidates.append(url)
+                        named_candidates.append((extract_number(resource_name), resource_name, url))
                 except Exception:
                     continue
         except Exception as e:
             print(f"⚠️ Ошибка при проверке раздела {section}: {e}")
             continue
 
-    if found_candidates:
-        print(f"✅ Найдено по названию темы (Plan B): {len(found_candidates)} шт.")
-        return found_candidates[0]
+    candidates = numbered_candidates or named_candidates
+    candidates = _deduplicate_and_sort_candidates(candidates)
+    if candidates:
+        print(f"✅ Найдено материалов лекции: {len(candidates)}")
+        for _, name, _ in candidates:
+            print(f"   • {name}")
+        return [url for _, _, url in candidates]
 
     print("❌ Лекция не найдена ни в Ресурсах, ни в Лекциях.")
-    return None
+    return []
+
+
+def _is_numbered_lecture_material(name):
+    return bool(
+        re.match(
+            r"^\s*(?:(?:тема|лекция|глава|раздел|занятие|практика)\s*)?\d",
+            name or "",
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _lecture_number_matches(target_number, resource_number):
+    if not target_number or not resource_number:
+        return False
+    if resource_number == target_number:
+        return True
+    return "." not in target_number and resource_number.startswith(f"{target_number}.")
+
+
+def _deduplicate_and_sort_candidates(candidates):
+    unique = {}
+    for number, name, url in candidates:
+        if url and url not in unique:
+            unique[url] = (number, name, url)
+
+    def sort_key(candidate):
+        number, name, _ = candidate
+        try:
+            parts = tuple(int(part) for part in (number or "").split("."))
+        except ValueError:
+            parts = (999999,)
+        return parts, (name or "").lower()
+
+    return sorted(unique.values(), key=sort_key)
 
 
 def _build_authenticated_session(driver):
@@ -247,11 +295,10 @@ def try_get_lecture_via_breadcrumbs(driver, course_name):
 
         activities = driver.find_elements(By.XPATH, "//div[contains(@class,'activity-instance')]//a")
 
-        found_url = None
-        found_name = ""
+        found_materials = []
 
         for act in activities:
-            href = act.get_attribute("href")
+            href = act.get_attribute("href") or ""
             name = act.text.strip()
 
             if any(x in href for x in ["mod/quiz", "mod/assign", "mod/forum", "mod/feedback"]):
@@ -259,17 +306,30 @@ def try_get_lecture_via_breadcrumbs(driver, course_name):
 
             if any(x in href for x in ["mod/page", "mod/resource", "mod/lesson", "mod/url"]):
                 print(f"✅ Нашли материал в секции: {name}")
-                found_url = href
-                found_name = name
-                if "лекция" in name.lower():
-                    break
+                found_materials.append((name, href))
 
-        if found_url:
+        lecture_materials = [
+            item
+            for item in found_materials
+            if re.match(r"^\s*(лекция|тема)\b", item[0], flags=re.IGNORECASE)
+        ]
+        materials = lecture_materials or found_materials
+        combined_parts = []
+        seen_urls = set()
+        for found_name, found_url in materials:
+            if not found_url or found_url in seen_urls:
+                continue
+            seen_urls.add(found_url)
             h_path = save_page_html(driver, found_url, f"Breadcrumb_{found_name}", course_name)
             if h_path:
                 text = clean_html_to_text(h_path)
-                save_text_file(text, h_path)
-                return text
+                if text and not is_context_error_text(text):
+                    save_text_file(text, h_path)
+                    combined_parts.append(f"### {found_name}\n{text}")
+
+        if combined_parts:
+            print(f"📚 План Б собрал материалов: {len(combined_parts)}")
+            return "\n\n".join(combined_parts)
 
         print("❌ В этой секции нет текстовых материалов.")
         return None
@@ -328,7 +388,7 @@ def load_saved_course_context(course_name, max_chars=None):
         except Exception:
             continue
 
-        if not text or text.startswith("❌"):
+        if not text or is_context_error_text(text):
             continue
 
         title = os.path.splitext(os.path.basename(txt_path))[0]

@@ -13,6 +13,19 @@ def get_current_course_link(driver, ignore_urls=None):
     Находит курс со статусом "Проходите сейчас" или "Пересдача",
     пропуская те, что в списке ignore_urls.
     """
+    courses = get_active_course_links(driver, ignore_urls=ignore_urls)
+    if not courses:
+        return None, None
+
+    url, name, state_text = courses[0]
+    print(f"Имя курса: {name}")
+    print(f"Статус курса: {state_text}")
+    print(f"URL курса: {url}")
+    return url, name
+
+
+def get_active_course_links(driver, ignore_urls=None):
+    """Return unique active courses as (url, name, state) tuples."""
     if ignore_urls is None:
         ignore_urls = set()
 
@@ -35,6 +48,8 @@ def get_current_course_link(driver, ignore_urls=None):
 
         print(f"🔎 Найдено активных курсов на странице: {len(all_states)}")
 
+        courses = []
+        seen_urls = set()
         for state_el in all_states:
             try:
                 link_el = state_el.find_element(By.XPATH, "./parent::div//a")
@@ -42,17 +57,15 @@ def get_current_course_link(driver, ignore_urls=None):
                 name = link_el.text.strip()
                 state_text = state_el.text.strip()
 
-                if url not in ignore_urls:
-                    print(f"Имя курса: {name}")
-                    print(f"Статус курса: {state_text}")
-                    print(f"URL курса: {url}")
-                    return url, name
+                if url and url not in ignore_urls and url not in seen_urls:
+                    courses.append((url, name, state_text))
+                    seen_urls.add(url)
             except Exception:
                 continue
 
-        return None, None
+        return courses
     except Exception:
-        return None, None
+        return []
 
 
 def find_current_test_info(driver, timeout=20, ignore_test_urls=None):

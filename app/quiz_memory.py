@@ -1,12 +1,27 @@
 import json
+import os
 import re
+import threading
 from datetime import datetime
+from functools import wraps
 from urllib.parse import parse_qs, urlparse
 
 from selenium.webdriver.common.by import By
 
 from app.config import QUIZ_MEMORY_FILE
 from app.quiz_review import QuestionReview, parse_question_reviews
+
+
+_MEMORY_LOCK = threading.RLock()
+
+
+def _with_memory_lock(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with _MEMORY_LOCK:
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 def normalize_question_text(text):
@@ -38,6 +53,7 @@ def extract_question_id(q_block):
     return ""
 
 
+@_with_memory_lock
 def load_quiz_memory():
     if not QUIZ_MEMORY_FILE.exists():
         return {"version": 2, "scopes": {}}
@@ -54,12 +70,16 @@ def load_quiz_memory():
     return {"version": 2, "scopes": {}}
 
 
+@_with_memory_lock
 def save_quiz_memory(memory):
     memory["version"] = 2
-    with open(QUIZ_MEMORY_FILE, "w", encoding="utf-8") as f:
+    temp_path = QUIZ_MEMORY_FILE.with_suffix(f"{QUIZ_MEMORY_FILE.suffix}.tmp")
+    with open(temp_path, "w", encoding="utf-8") as f:
         json.dump(memory, f, ensure_ascii=False, indent=2)
+    os.replace(temp_path, QUIZ_MEMORY_FILE)
 
 
+@_with_memory_lock
 def get_confirmed_answer(
     course_name,
     test_name,
@@ -91,6 +111,8 @@ def get_confirmed_answer(
 
     return None
 
+
+@_with_memory_lock
 def record_review_results(driver, course_name, test_name, course_id="", quiz_id=""):
     reviews = parse_question_reviews(driver.page_source)
     memory = load_quiz_memory()

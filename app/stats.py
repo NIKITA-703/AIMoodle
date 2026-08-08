@@ -15,6 +15,7 @@ def format_duration(seconds):
 
 def initialize_database():
     with _connect() as connection:
+        connection.execute("PRAGMA journal_mode=WAL")
         connection.executescript(
             """
             CREATE TABLE IF NOT EXISTS runs (
@@ -240,7 +241,8 @@ def get_global_stats():
 
 
 def _connect():
-    connection = sqlite3.connect(DATABASE_FILE)
+    connection = sqlite3.connect(DATABASE_FILE, timeout=30)
+    connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection
 

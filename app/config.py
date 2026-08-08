@@ -45,6 +45,10 @@ try:
     TESTS_LIMIT = max(1, int(os.getenv("TESTS_LIMIT", "1")))
 except ValueError:
     TESTS_LIMIT = 1
+try:
+    PARALLEL_WORKERS = min(4, max(1, int(os.getenv("PARALLEL_WORKERS", "1"))))
+except ValueError:
+    PARALLEL_WORKERS = 1
 
 options = webdriver.ChromeOptions()
 options.add_argument("--window-size=1590,950")

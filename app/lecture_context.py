@@ -4,7 +4,8 @@ from collections import Counter
 
 
 FULL_CONTEXT_LIMIT = 45000
-SELECTED_CONTEXT_LIMIT = 30000
+SELECTED_CONTEXT_LIMIT = 18000
+PRIMARY_CHUNK_LIMIT = 4
 CHUNK_SIZE = 2600
 CHUNK_OVERLAP = 350
 
@@ -63,21 +64,27 @@ def build_lecture_context(lecture_text, question, options=""):
             score += min(counts[term], 3) * idf * query_count
         scores.append((score, index))
 
-    best = [index for score, index in sorted(scores, reverse=True) if score > 0][:6]
+    best = [
+        index
+        for score, index in sorted(scores, reverse=True)
+        if score > 0
+    ][:PRIMARY_CHUNK_LIMIT]
     if not best:
         return text[:SELECTED_CONTEXT_LIMIT], "truncated"
 
-    selected_indices = set()
+    # Put every strongest match before its neighbours. With a bounded context this
+    # prevents an early neighbour from displacing a stronger fragment later in the file.
+    selected_indices = list(best)
     for index in best:
-        selected_indices.add(index)
         if index > 0:
-            selected_indices.add(index - 1)
+            selected_indices.append(index - 1)
         if index + 1 < len(chunks):
-            selected_indices.add(index + 1)
+            selected_indices.append(index + 1)
+    selected_indices = list(dict.fromkeys(selected_indices))
 
     selected = []
     total_length = 0
-    for index in sorted(selected_indices):
+    for index in selected_indices:
         chunk = chunks[index].strip()
         if not chunk:
             continue
@@ -124,4 +131,3 @@ def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
 def _tokenize(text):
     words = re.findall(r"[a-zа-яё0-9]+", (text or "").lower())
     return [word for word in words if len(word) >= 3 and word not in STOP_WORDS]
-
