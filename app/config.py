@@ -26,6 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 ENV_PATH = BASE_DIR / ".env"
 
+BOT_VERSION = "3.1.0"
+MEMORY_VERSION = "review-v2"
+CONTEXT_VERSION = "lexical-v1"
+
 DATA_DIR.mkdir(exist_ok=True)
 _load_env_file(ENV_PATH)
 

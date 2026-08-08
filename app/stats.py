@@ -1,8 +1,19 @@
 import json
+import hashlib
 import sqlite3
+import subprocess
 from datetime import datetime
 
-from app.config import DATABASE_FILE, STATS_FILE
+from app.config import (
+    BASE_DIR,
+    BOT_VERSION,
+    CONTEXT_VERSION,
+    DATABASE_FILE,
+    MEMORY_VERSION,
+    STATS_FILE,
+)
+
+DATABASE_SCHEMA_VERSION = 2
 
 
 def format_duration(seconds):
@@ -18,12 +29,27 @@ def initialize_database():
         connection.execute("PRAGMA journal_mode=WAL")
         connection.executescript(
             """
+            CREATE TABLE IF NOT EXISTS bot_versions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                bot_version TEXT NOT NULL,
+                git_commit TEXT NOT NULL DEFAULT 'unknown',
+                git_dirty INTEGER NOT NULL DEFAULT 0,
+                memory_version TEXT NOT NULL,
+                context_version TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(bot_version, git_commit, git_dirty, memory_version, context_version)
+            );
+
             CREATE TABLE IF NOT EXISTS runs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                bot_version_id INTEGER,
                 started_at TEXT NOT NULL,
                 finished_at TEXT,
                 uptime_sec REAL NOT NULL DEFAULT 0,
-                errors_count INTEGER NOT NULL DEFAULT 0
+                errors_count INTEGER NOT NULL DEFAULT 0,
+                model_name TEXT NOT NULL DEFAULT '',
+                settings_json TEXT NOT NULL DEFAULT '{}',
+                FOREIGN KEY (bot_version_id) REFERENCES bot_versions(id)
             );
 
             CREATE TABLE IF NOT EXISTS attempts (
@@ -80,18 +106,75 @@ def initialize_database():
                 ON question_results(question_id);
             CREATE INDEX IF NOT EXISTS idx_question_results_outcome
                 ON question_results(outcome);
+
+            CREATE TABLE IF NOT EXISTS lecture_contexts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                course_name TEXT NOT NULL,
+                content_sha256 TEXT NOT NULL,
+                character_count INTEGER NOT NULL,
+                material_count INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                UNIQUE(course_name, content_sha256)
+            );
+
+            CREATE TABLE IF NOT EXISTS attempt_lecture_contexts (
+                attempt_id INTEGER NOT NULL,
+                lecture_context_id INTEGER NOT NULL,
+                PRIMARY KEY (attempt_id, lecture_context_id),
+                FOREIGN KEY (attempt_id) REFERENCES attempts(id),
+                FOREIGN KEY (lecture_context_id) REFERENCES lecture_contexts(id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_lecture_contexts_hash
+                ON lecture_contexts(content_sha256);
             """
         )
+        _ensure_column(connection, "runs", "bot_version_id", "INTEGER")
+        _ensure_column(connection, "runs", "model_name", "TEXT NOT NULL DEFAULT ''")
+        _ensure_column(connection, "runs", "settings_json", "TEXT NOT NULL DEFAULT '{}'")
         _ensure_column(connection, "question_results", "correct_keys_json", "TEXT NOT NULL DEFAULT '[]'")
         _ensure_column(connection, "question_results", "incorrect_keys_json", "TEXT NOT NULL DEFAULT '[]'")
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_runs_bot_version ON runs(bot_version_id)"
+        )
+        legacy_version_id = _get_or_create_bot_version(
+            connection,
+            bot_version="legacy",
+            git_commit="unknown",
+            git_dirty=False,
+            memory_version="unknown",
+            context_version="unknown",
+        )
+        connection.execute(
+            "UPDATE runs SET bot_version_id = ? WHERE bot_version_id IS NULL",
+            (legacy_version_id,),
+        )
+        connection.execute(f"PRAGMA user_version = {DATABASE_SCHEMA_VERSION}")
 
 
-def start_run():
+def start_run(model_name="", settings=None):
     initialize_database()
     with _connect() as connection:
+        git_commit, git_dirty = _git_state()
+        version_id = _get_or_create_bot_version(
+            connection,
+            bot_version=BOT_VERSION,
+            git_commit=git_commit,
+            git_dirty=git_dirty,
+            memory_version=MEMORY_VERSION,
+            context_version=CONTEXT_VERSION,
+        )
         cursor = connection.execute(
-            "INSERT INTO runs(started_at) VALUES (?)",
-            (_now(),),
+            """
+            INSERT INTO runs(bot_version_id, started_at, model_name, settings_json)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                version_id,
+                _now(),
+                model_name or "",
+                json.dumps(settings or {}, ensure_ascii=False, sort_keys=True),
+            ),
         )
         return cursor.lastrowid
 
@@ -110,7 +193,15 @@ def finish_run(run_id, uptime_sec, errors_count=0):
         )
 
 
-def record_attempt(run_id, course_name, test_name, result, duration_sec, started_at=None):
+def record_attempt(
+    run_id,
+    course_name,
+    test_name,
+    result,
+    duration_sec,
+    started_at=None,
+    lecture_text="",
+):
     source_counts = result.source_counts or {}
     with _connect() as connection:
         cursor = connection.execute(
@@ -147,6 +238,8 @@ def record_attempt(run_id, course_name, test_name, result, duration_sec, started
             ),
         )
         attempt_id = cursor.lastrowid
+        if lecture_text and lecture_text.strip():
+            _record_lecture_context(connection, attempt_id, course_name, lecture_text)
         for question in result.question_results or []:
             connection.execute(
                 """
@@ -181,6 +274,7 @@ def record_attempt(run_id, course_name, test_name, result, duration_sec, started
                     _now(),
                 ),
             )
+        return attempt_id
 
 
 def get_global_stats():
@@ -240,11 +334,208 @@ def get_global_stats():
     }
 
 
+def get_question_analysis():
+    """Build aggregated quality metrics from already recorded question results."""
+    initialize_database()
+    with _connect() as connection:
+        coverage = connection.execute(
+            """
+            SELECT
+                COUNT(*) AS total,
+                COALESCE(SUM(CASE WHEN outcome != 'ungraded' THEN 1 ELSE 0 END), 0) AS graded,
+                COALESCE(SUM(CASE WHEN outcome = 'ungraded' THEN 1 ELSE 0 END), 0) AS ungraded
+            FROM question_results
+            """
+        ).fetchone()
+        by_source = _quality_breakdown(connection, "source")
+        by_type = _quality_breakdown(connection, "question_type")
+        by_context = _quality_breakdown(connection, "context_mode")
+        by_version = _quality_by_version(connection)
+
+    return {
+        "total": coverage["total"],
+        "graded": coverage["graded"],
+        "ungraded": coverage["ungraded"],
+        "by_source": by_source,
+        "by_type": by_type,
+        "by_context": by_context,
+        "by_version": by_version,
+    }
+
+
+def print_question_analysis():
+    analysis = get_question_analysis()
+    print("\nАнализ качества ответов")
+    print(f"Всего записей вопросов: {analysis['total']}")
+    print(f"С оценкой Moodle: {analysis['graded']}")
+    print(f"Без оценки: {analysis['ungraded']}")
+
+    if not analysis["graded"]:
+        print("Недостаточно оценённых вопросов для анализа.")
+        return
+
+    _print_quality_table("По источнику ответа", analysis["by_source"])
+    _print_quality_table("По типу вопроса", analysis["by_type"])
+    _print_quality_table("По режиму контекста", analysis["by_context"])
+    _print_quality_table("По версии бота", analysis["by_version"])
+
+
+def _quality_breakdown(connection, column):
+    allowed_columns = {"source", "question_type", "context_mode"}
+    if column not in allowed_columns:
+        raise ValueError(f"Unsupported analysis column: {column}")
+
+    rows = connection.execute(
+        f"""
+        SELECT
+            {column} AS label,
+            COUNT(*) AS total,
+            COALESCE(SUM(CASE WHEN outcome = 'correct' THEN 1 ELSE 0 END), 0) AS correct,
+            COALESCE(SUM(CASE WHEN outcome = 'partial' THEN 1 ELSE 0 END), 0) AS partial,
+            COALESCE(SUM(CASE WHEN outcome = 'incorrect' THEN 1 ELSE 0 END), 0) AS incorrect,
+            COALESCE(SUM(CASE WHEN outcome = 'not_answered' THEN 1 ELSE 0 END), 0) AS unanswered,
+            AVG(CASE WHEN max_score > 0 THEN score * 100.0 / max_score END) AS average_score_percent,
+            AVG(response_time_sec) AS average_response_time_sec
+        FROM question_results
+        WHERE outcome != 'ungraded'
+        GROUP BY {column}
+        ORDER BY total DESC, label
+        """
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def _quality_by_version(connection):
+    rows = connection.execute(
+        """
+        SELECT
+            v.bot_version || ' | mem=' || v.memory_version || ' | ctx=' || v.context_version AS label,
+            COUNT(*) AS total,
+            COALESCE(SUM(CASE WHEN q.outcome = 'correct' THEN 1 ELSE 0 END), 0) AS correct,
+            COALESCE(SUM(CASE WHEN q.outcome = 'partial' THEN 1 ELSE 0 END), 0) AS partial,
+            COALESCE(SUM(CASE WHEN q.outcome = 'incorrect' THEN 1 ELSE 0 END), 0) AS incorrect,
+            COALESCE(SUM(CASE WHEN q.outcome = 'not_answered' THEN 1 ELSE 0 END), 0) AS unanswered,
+            AVG(CASE WHEN q.max_score > 0 THEN q.score * 100.0 / q.max_score END) AS average_score_percent,
+            AVG(q.response_time_sec) AS average_response_time_sec
+        FROM question_results q
+        JOIN attempts a ON a.id = q.attempt_id
+        JOIN runs r ON r.id = a.run_id
+        JOIN bot_versions v ON v.id = r.bot_version_id
+        WHERE q.outcome != 'ungraded'
+        GROUP BY v.id
+        ORDER BY total DESC, label
+        """
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def _print_quality_table(title, rows):
+    label_width = min(60, max([24, *(len(row["label"] or "unknown") for row in rows)]))
+    print(f"\n{title}:")
+    print(f"{'Категория':<{label_width}} {'Всего':>6} {'Верно':>6} {'Част.':>6} {'Ошиб.':>6} {'Нет':>5} {'Точность':>9} {'Время':>8}")
+    for row in rows:
+        average_score = row["average_score_percent"]
+        accuracy = f"{average_score:.1f}%" if average_score is not None else "-"
+        response_time = row["average_response_time_sec"]
+        time_text = f"{response_time:.1f}с" if response_time is not None else "-"
+        print(
+            f"{(row['label'] or 'unknown'):<{label_width}} "
+            f"{row['total']:>6} {row['correct']:>6} {row['partial']:>6} "
+            f"{row['incorrect']:>6} {row['unanswered']:>5} {accuracy:>9} {time_text:>8}"
+        )
+
+
 def _connect():
     connection = sqlite3.connect(DATABASE_FILE, timeout=30)
     connection.execute("PRAGMA busy_timeout=30000")
+    connection.execute("PRAGMA foreign_keys=ON")
     connection.row_factory = sqlite3.Row
     return connection
+
+
+def _get_or_create_bot_version(
+    connection,
+    bot_version,
+    git_commit,
+    git_dirty,
+    memory_version,
+    context_version,
+):
+    values = (
+        bot_version,
+        git_commit or "unknown",
+        int(bool(git_dirty)),
+        memory_version,
+        context_version,
+    )
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO bot_versions(
+            bot_version, git_commit, git_dirty, memory_version,
+            context_version, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (*values, _now()),
+    )
+    row = connection.execute(
+        """
+        SELECT id FROM bot_versions
+        WHERE bot_version = ? AND git_commit = ? AND git_dirty = ?
+          AND memory_version = ? AND context_version = ?
+        """,
+        values,
+    ).fetchone()
+    return row["id"]
+
+
+def _record_lecture_context(connection, attempt_id, course_name, lecture_text):
+    normalized = lecture_text.strip()
+    content_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    material_count = max(1, sum(1 for line in normalized.splitlines() if line.startswith("### ")))
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO lecture_contexts(
+            course_name, content_sha256, character_count,
+            material_count, created_at
+        ) VALUES (?, ?, ?, ?, ?)
+        """,
+        (course_name, content_hash, len(normalized), material_count, _now()),
+    )
+    context_id = connection.execute(
+        """
+        SELECT id FROM lecture_contexts
+        WHERE course_name = ? AND content_sha256 = ?
+        """,
+        (course_name, content_hash),
+    ).fetchone()["id"]
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO attempt_lecture_contexts(attempt_id, lecture_context_id)
+        VALUES (?, ?)
+        """,
+        (attempt_id, context_id),
+    )
+
+
+def _git_state():
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short=12", "HEAD"],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            timeout=3,
+            check=True,
+        ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "diff", "--quiet", "HEAD", "--"],
+            cwd=BASE_DIR,
+            timeout=3,
+            check=False,
+        ).returncode != 0
+        return commit or "unknown", dirty
+    except Exception:
+        return "unknown", False
 
 
 def _ensure_column(connection, table_name, column_name, declaration):

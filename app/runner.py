@@ -13,6 +13,7 @@ from app.ai_utils import check_ai_ready, clean_html_to_text, is_context_error_te
 from app.auth import login_on_mudl
 from app.config import (
     AUTO_USE_LAST_ATTEMPT,
+    BOT_VERSION,
     PARALLEL_WORKERS,
     REQUIRE_LECTURE_CONTEXT,
     TESTS_LIMIT,
@@ -118,7 +119,16 @@ def run(tests_limit=None, parallel_workers=None):
         return
     print(f"🧠 {ai_message}\n")
 
-    run_id = start_run()
+    model_name = ai_message.partition("Модель:")[2].strip()
+    run_id = start_run(
+        model_name=model_name,
+        settings={
+            "tests_limit": tests_limit,
+            "parallel_workers": parallel_workers,
+            "auto_use_last_attempt": AUTO_USE_LAST_ATTEMPT,
+            "require_lecture_context": REQUIRE_LECTURE_CONTEXT,
+        },
+    )
 
     try:
         driver = _create_driver()
@@ -268,6 +278,7 @@ def run(tests_limit=None, parallel_workers=None):
                 result,
                 duration_sec=duration,
                 started_at=attempt_started_at,
+                lecture_text=lecture_text,
             )
 
             if result.submitted:
@@ -554,6 +565,7 @@ def _execute_assigned_attempt(driver, assignment, run_id, prefix, lecture_text=N
         result,
         duration_sec=duration,
         started_at=attempt_started_at,
+        lecture_text=lecture_text,
     )
 
     if result.passed:
@@ -682,7 +694,7 @@ def _print_requirements(requirements):
 
 
 def _print_start_stats(stats):
-    print("\n🤖 MoodleBot v3.0. Запущено.")
+    print(f"\n🤖 MoodleBot v{BOT_VERSION}. Запущено.")
     print(f"✅ Успешно пройдено: {stats['passed_tests']}")
     print(f"📝 Всего попыток: {stats['total_attempts']}")
     print(f"📉 Неудачных попыток: {stats['failed_attempts']}")

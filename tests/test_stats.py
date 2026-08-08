@@ -1,5 +1,6 @@
 from app import stats
 import json
+import sqlite3
 
 from app.models import QuestionResult, QuizResult
 
@@ -59,3 +60,146 @@ def test_sqlite_stats_separate_attempts_and_passed_tests(tmp_path, monkeypatch):
     assert question["evidence"] == "Фрагмент текста лекции"
     assert json.loads(question["correct_keys_json"]) == ["a"]
     assert json.loads(question["incorrect_keys_json"]) == ["b"]
+
+
+def test_question_analysis_groups_existing_results(tmp_path, monkeypatch):
+    monkeypatch.setattr(stats, "DATABASE_FILE", tmp_path / "bot.db")
+    monkeypatch.setattr(stats, "STATS_FILE", tmp_path / "missing.json")
+
+    run_id = stats.start_run()
+    result = QuizResult(
+        submitted=True,
+        question_results=[
+            QuestionResult(
+                question_type="radio",
+                question_text="Вопрос 1",
+                source="lecture",
+                context_mode="selected",
+                score=1.0,
+                max_score=1.0,
+                outcome="correct",
+                response_time_sec=2.0,
+            ),
+            QuestionResult(
+                question_type="checkbox",
+                question_text="Вопрос 2",
+                source="general_knowledge",
+                context_mode="none",
+                score=0.5,
+                max_score=1.0,
+                outcome="partial",
+                response_time_sec=4.0,
+            ),
+            QuestionResult(
+                question_type="text",
+                question_text="Вопрос без обзора",
+                source="memory",
+                outcome="ungraded",
+            ),
+        ],
+    )
+    stats.record_attempt(run_id, "Курс", "Тест", result, 10)
+
+    analysis = stats.get_question_analysis()
+
+    assert analysis["total"] == 3
+    assert analysis["graded"] == 2
+    assert analysis["ungraded"] == 1
+    assert analysis["by_source"][0]["label"] in {"general_knowledge", "lecture"}
+    lecture = next(row for row in analysis["by_source"] if row["label"] == "lecture")
+    checkbox = next(row for row in analysis["by_type"] if row["label"] == "checkbox")
+    assert lecture["average_score_percent"] == 100.0
+    assert checkbox["partial"] == 1
+    assert checkbox["average_score_percent"] == 50.0
+
+
+def test_run_version_and_lecture_context_metadata_are_linked(tmp_path, monkeypatch):
+    monkeypatch.setattr(stats, "DATABASE_FILE", tmp_path / "bot.db")
+    monkeypatch.setattr(stats, "STATS_FILE", tmp_path / "missing.json")
+    monkeypatch.setattr(stats, "_git_state", lambda: ("abc123", False))
+
+    run_id = stats.start_run(
+        model_name="qwen/qwen3-14b",
+        settings={"parallel_workers": 2, "tests_limit": 5},
+    )
+    attempt_id = stats.record_attempt(
+        run_id,
+        "Курс",
+        "Тест",
+        QuizResult(submitted=True),
+        duration_sec=10,
+        lecture_text="### Лекция 1\nТекст лекции",
+    )
+
+    with stats._connect() as connection:
+        run = connection.execute(
+            """
+            SELECT r.*, v.bot_version, v.git_commit, v.memory_version, v.context_version
+            FROM runs r JOIN bot_versions v ON v.id = r.bot_version_id
+            WHERE r.id = ?
+            """,
+            (run_id,),
+        ).fetchone()
+        lecture = connection.execute(
+            """
+            SELECT l.*
+            FROM lecture_contexts l
+            JOIN attempt_lecture_contexts al ON al.lecture_context_id = l.id
+            WHERE al.attempt_id = ?
+            """,
+            (attempt_id,),
+        ).fetchone()
+        lecture_columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(lecture_contexts)")
+        }
+        schema_version = connection.execute("PRAGMA user_version").fetchone()[0]
+
+    assert run["bot_version"] == stats.BOT_VERSION
+    assert run["git_commit"] == "abc123"
+    assert run["memory_version"] == stats.MEMORY_VERSION
+    assert run["context_version"] == stats.CONTEXT_VERSION
+    assert run["model_name"] == "qwen/qwen3-14b"
+    assert json.loads(run["settings_json"])["parallel_workers"] == 2
+    assert lecture["character_count"] == len("### Лекция 1\nТекст лекции")
+    assert lecture["material_count"] == 1
+    assert len(lecture["content_sha256"]) == 64
+    assert "content" not in lecture_columns
+    assert "text" not in lecture_columns
+    assert schema_version == stats.DATABASE_SCHEMA_VERSION
+
+
+def test_existing_runs_are_migrated_to_legacy_version(tmp_path, monkeypatch):
+    database = tmp_path / "bot.db"
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            """
+            CREATE TABLE runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                started_at TEXT NOT NULL,
+                finished_at TEXT,
+                uptime_sec REAL NOT NULL DEFAULT 0,
+                errors_count INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        connection.execute("INSERT INTO runs(started_at) VALUES ('2026-01-01T00:00:00')")
+
+    monkeypatch.setattr(stats, "DATABASE_FILE", database)
+    monkeypatch.setattr(stats, "STATS_FILE", tmp_path / "missing.json")
+    stats.initialize_database()
+
+    with stats._connect() as connection:
+        migrated = connection.execute(
+            """
+            SELECT r.model_name, r.settings_json, v.bot_version,
+                   v.memory_version, v.context_version
+            FROM runs r JOIN bot_versions v ON v.id = r.bot_version_id
+            WHERE r.id = 1
+            """
+        ).fetchone()
+
+    assert migrated["bot_version"] == "legacy"
+    assert migrated["memory_version"] == "unknown"
+    assert migrated["context_version"] == "unknown"
+    assert migrated["model_name"] == ""
+    assert migrated["settings_json"] == "{}"

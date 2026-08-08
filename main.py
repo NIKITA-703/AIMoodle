@@ -1,6 +1,7 @@
 import argparse
 
 from app.runner import run
+from app.stats import print_question_analysis
 
 
 def _positive_int(value):
@@ -23,9 +24,18 @@ def parse_args():
         type=_positive_int,
         help="общий максимум отправленных попыток за запуск",
     )
+    parser.add_argument(
+        "--stats-report",
+        "--stats",
+        action="store_true",
+        help="показать анализ накопленных ответов без запуска браузера",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    run(tests_limit=args.tests, parallel_workers=args.workers)
+    if args.stats_report:
+        print_question_analysis()
+    else:
+        run(tests_limit=args.tests, parallel_workers=args.workers)
