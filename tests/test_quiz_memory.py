@@ -35,6 +35,14 @@ def test_memory_uses_qid_and_does_not_confirm_partial_checkbox(tmp_path, monkeyp
         quiz_id="6143",
         question_id="70475",
     )
+    partial_feedback = quiz_memory.get_review_feedback(
+        "Курс",
+        "Тест",
+        "Формулировка может измениться",
+        course_id="74",
+        quiz_id="6143",
+        question_id="70475",
+    )
     binary_inverse = quiz_memory.get_confirmed_answer(
         "Курс",
         "Тест",
@@ -47,6 +55,10 @@ def test_memory_uses_qid_and_does_not_confirm_partial_checkbox(tmp_path, monkeyp
     assert result["saved_count"] == 3
     assert radio_answer["keys"] == ["b"]
     assert partial_checkbox is None
+    assert len(partial_feedback) == 1
+    assert partial_feedback[0]["status"] == "partial"
+    assert partial_feedback[0]["score"] < partial_feedback[0]["max_score"]
+    assert partial_feedback[0]["selected_texts"]
     assert binary_inverse["keys"] == ["b"]
 
 

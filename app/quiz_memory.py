@@ -113,6 +113,44 @@ def get_confirmed_answer(
 
 
 @_with_memory_lock
+def get_review_feedback(
+    course_name,
+    test_name,
+    question_text,
+    course_id="",
+    quiz_id="",
+    question_id="",
+    limit=3,
+):
+    """Return recent non-full results for another attempt of this question."""
+    memory = load_quiz_memory()
+    scopes = memory.get("scopes", {})
+
+    scope_keys = [_scope_key(course_id, quiz_id, course_name, test_name)]
+    legacy_scope = f"{(course_name or '').strip()}|||{(test_name or '').strip()}"
+    if legacy_scope not in scope_keys:
+        scope_keys.append(legacy_scope)
+
+    question_keys = [_question_key(question_id, question_text)]
+    normalized_text = normalize_question_text(question_text)
+    for fallback in (f"text:{normalized_text}", normalized_text):
+        if fallback not in question_keys:
+            question_keys.append(fallback)
+
+    for scope_key in scope_keys:
+        questions = scopes.get(scope_key, {}).get("questions", {})
+        for question_key in question_keys:
+            attempts = [
+                attempt
+                for attempt in questions.get(question_key, {}).get("attempts", [])
+                if _is_non_full_attempt(attempt)
+            ]
+            if attempts:
+                return attempts[-max(1, int(limit or 1)):]
+    return []
+
+
+@_with_memory_lock
 def record_review_results(driver, course_name, test_name, course_id="", quiz_id=""):
     reviews = parse_question_reviews(driver.page_source)
     memory = load_quiz_memory()
@@ -240,6 +278,14 @@ def _attempt_payload(review):
         "text_answer": review.text_answer,
         "captured_at": datetime.now().isoformat(timespec="seconds"),
     }
+
+
+def _is_non_full_attempt(attempt):
+    score = attempt.get("score")
+    max_score = attempt.get("max_score")
+    if score is None or max_score is None or max_score <= 0:
+        return attempt.get("status") in {"partial", "incorrect", "not_answered"}
+    return score + 1e-9 < max_score
 
 
 def _build_confirmed_answer(review: QuestionReview):

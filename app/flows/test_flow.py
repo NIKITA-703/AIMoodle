@@ -13,7 +13,12 @@ from app.ai_utils import ask_ai_question_data, is_retryable_ai_error, normalize_
 from app.config import AI_RESPONSE_ATTEMPTS, BOT_HISTORY_FILE
 from app.control import StopRequested, ensure_running
 from app.models import QuestionResult, QuizRequirements, QuizResult
-from app.quiz_memory import extract_question_id, get_confirmed_answer, record_review_results
+from app.quiz_memory import (
+    extract_question_id,
+    get_confirmed_answer,
+    get_review_feedback,
+    record_review_results,
+)
 from app.quiz_review import parse_question_reviews, parse_quiz_requirements, parse_review_summary
 
 
@@ -451,6 +456,14 @@ def _answer_question_block(
         quiz_id=requirements.quiz_id,
         question_id=question_id,
     )
+    review_feedback = [] if saved_answer else get_review_feedback(
+        course_name,
+        test_name,
+        q_text,
+        course_id=requirements.course_id,
+        quiz_id=requirements.quiz_id,
+        question_id=question_id,
+    )
 
     target_keys = []
     text_answer = ""
@@ -459,7 +472,15 @@ def _answer_question_block(
     context_mode = "memory" if saved_answer else "none"
 
     if saved_answer:
-        print(f"🧠 Используем подтверждённый ответ из памяти по qid={question_id or 'fallback'}.")
+        confirmation = (
+            " с полным баллом"
+            if saved_answer.get("source") == "full_score"
+            else ""
+        )
+        print(
+            "🧠 Используем подтверждённый ответ"
+            f"{confirmation} из памяти по qid={question_id or 'fallback'}."
+        )
         if question_type == "text":
             text_answer = (saved_answer.get("text") or "").strip()
             if not text_answer:
@@ -486,6 +507,22 @@ def _answer_question_block(
 
     if not saved_answer:
         answer_hint = _get_text_answer_hint(q_text) if question_type == "text" else ""
+        feedback_hint = _build_review_feedback_hint(review_feedback, question_type)
+        all_answers_hint = _get_all_answers_hint(
+            option_text_by_key,
+            question_type,
+        )
+        answer_hint = " ".join(
+            part
+            for part in (answer_hint, feedback_hint, all_answers_hint)
+            if part
+        )
+        latest_feedback = review_feedback[-1] if review_feedback else None
+        if latest_feedback:
+            print(
+                "🧪 Учитываем прошлый результат вопроса: "
+                f"{latest_feedback.get('score')}/{latest_feedback.get('max_score')}."
+            )
         variants_str = "\n".join(options_text)
         allowed_keys = [key for key in options_map if key != "text_input"]
 
@@ -545,9 +582,34 @@ def _answer_question_block(
                 if not target_keys:
                     target_keys = _find_keys_by_texts([ai_result.raw_text], option_text_by_key)
                 if target_keys:
-                    if question_type == "select":
+                    target_keys = _apply_explicit_review_feedback(
+                        target_keys,
+                        latest_feedback,
+                        option_text_by_key,
+                    )
+                    if target_keys and question_type == "select":
                         target_keys = [options_map[target_keys[0]]]
-                    break
+                    if target_keys and not _same_as_failed_answer(
+                        target_keys,
+                        latest_feedback,
+                        option_text_by_key,
+                    ):
+                        break
+                    if target_keys:
+                        alternative = _alternative_for_repeated_answer(
+                            target_keys,
+                            latest_feedback,
+                            option_text_by_key,
+                        )
+                        if alternative:
+                            target_keys = alternative
+                            print(
+                                "🧩 Предыдущий выбор всех отдельных пунктов дал 0; "
+                                "используем вариант «все перечисленное»."
+                            )
+                            break
+                        target_keys = []
+                        print("🔁 ИИ повторил набор с неполным баллом; требуем пересмотр.")
 
             if ai_attempt < AI_RESPONSE_ATTEMPTS:
                 expanded_context = True
@@ -710,6 +772,152 @@ def _get_text_answer_hint(question):
     if len(gaps) == 1 or "вставьте недостающее слово" in question.lower():
         return "В вопросе один пропуск; верни только одно слово или короткий фрагмент в нужной форме."
     return ""
+
+
+def _get_all_answers_hint(option_text_by_key, question_type):
+    if question_type != "checkbox":
+        return ""
+
+    all_answer_keys = [
+        key
+        for key, text in option_text_by_key.items()
+        if _is_all_answers_option(text)
+    ]
+    if len(all_answer_keys) != 1:
+        return ""
+
+    all_key = all_answer_keys[0]
+    return (
+        f"Вариант {all_key} является обобщающим ответом «все перечисленное». "
+        "Отдельно проверь его роль: нужно выбрать только этот вариант, только "
+        "конкретные пункты либо обобщающий и конкретные пункты вместе. "
+        "Не объединяй их автоматически; выбери набор, который следует из лекции "
+        "и результатов предыдущих попыток."
+    )
+
+
+def _build_review_feedback_hint(attempts, question_type):
+    if not attempts:
+        return ""
+
+    lines = ["Результаты предыдущих попыток этого же вопроса:"]
+    for index, attempt in enumerate(attempts, start=1):
+        selected = [
+            _strip_option_prefix(text)
+            for text in attempt.get("selected_texts", [])
+            if _strip_option_prefix(text)
+        ]
+        answer = "; ".join(selected) or attempt.get("text_answer") or "нет ответа"
+        lines.append(
+            f"Попытка {index}: выбрано [{answer}], "
+            f"получено {attempt.get('score')}/{attempt.get('max_score')}."
+        )
+
+        correct = [
+            _strip_option_prefix(text)
+            for text in attempt.get("correct_texts", [])
+            if _strip_option_prefix(text)
+        ]
+        incorrect = [
+            _strip_option_prefix(text)
+            for text in attempt.get("incorrect_texts", [])
+            if _strip_option_prefix(text)
+        ]
+        if correct:
+            lines.append(f"Moodle явно подтвердил: {'; '.join(correct)}.")
+        if incorrect:
+            lines.append(f"Moodle явно отклонил: {'; '.join(incorrect)}.")
+
+    if question_type == "checkbox":
+        lines.append(
+            "Частичный балл означает, что набор неполный и/или содержит лишний вариант. "
+            "Сначала сохрани обоснованные выбранные пункты и добавь недостающие; "
+            "удаляй прежний пункт только если он явно неверен. "
+            "Не повторяй без изменений набор, который уже дал неполный балл."
+        )
+    else:
+        lines.append(
+            "Предыдущий ответ не дал полный балл. Пересмотри его и не повторяй "
+            "тот же ответ без нового основания."
+        )
+    return "\n".join(lines)
+
+
+def _apply_explicit_review_feedback(target_keys, attempt, option_text_by_key):
+    if not attempt:
+        return list(dict.fromkeys(target_keys))
+
+    correct_keys = _find_keys_by_texts(attempt.get("correct_texts", []), option_text_by_key)
+    incorrect_keys = set(
+        _find_keys_by_texts(attempt.get("incorrect_texts", []), option_text_by_key)
+    )
+    result = [key for key in target_keys if key not in incorrect_keys]
+    for key in correct_keys:
+        if key not in result:
+            result.append(key)
+    return list(dict.fromkeys(result))
+
+
+def _same_as_failed_answer(target_keys, attempt, option_text_by_key):
+    if not attempt or not target_keys:
+        return False
+    previous_keys = _find_keys_by_texts(
+        attempt.get("selected_texts", []),
+        option_text_by_key,
+    )
+    return bool(previous_keys) and set(target_keys) == set(previous_keys)
+
+
+def _alternative_for_repeated_answer(target_keys, attempt, option_text_by_key):
+    if not attempt or not _is_zero_score(attempt):
+        return []
+
+    all_answer_keys = [
+        key
+        for key, text in option_text_by_key.items()
+        if _is_all_answers_option(text)
+    ]
+    if len(all_answer_keys) != 1:
+        return []
+
+    all_key = all_answer_keys[0]
+    specific_keys = {key for key in option_text_by_key if key != all_key}
+    previous_keys = set(
+        _find_keys_by_texts(attempt.get("selected_texts", []), option_text_by_key)
+    )
+    if previous_keys == specific_keys and set(target_keys) == specific_keys:
+        return [all_key]
+    return []
+
+
+def _is_zero_score(attempt):
+    score = attempt.get("score")
+    max_score = attempt.get("max_score")
+    return score is not None and max_score and abs(score) < 1e-9
+
+
+def _is_all_answers_option(text):
+    normalized = _normalize_option_text(text)
+    return any(
+        marker in normalized
+        for marker in (
+            "все перечислен",
+            "все вышеперечислен",
+            "все ответы верн",
+            "все варианты верн",
+            "all of the above",
+            "all answers are correct",
+        )
+    )
+
+
+def _strip_option_prefix(text):
+    return re.sub(
+        r"^\s*[a-zа-я0-9]+\s*[\.)]\s*",
+        "",
+        (text or "").strip(),
+        flags=re.IGNORECASE,
+    )
 
 
 def _normalize_option_text(text):

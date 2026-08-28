@@ -1,7 +1,12 @@
 from selenium.common.exceptions import NoSuchElementException
 
 from app.flows.test_flow import (
+    _alternative_for_repeated_answer,
+    _apply_explicit_review_feedback,
     _attach_review_scores,
+    _build_review_feedback_hint,
+    _get_all_answers_hint,
+    _same_as_failed_answer,
     _latest_review_url,
     _open_review_page,
     _review_urls,
@@ -47,6 +52,92 @@ def test_question_result_is_not_duplicated_for_same_qid():
 
     assert len(results) == 1
     assert results[0].selected_keys == ["b"]
+
+
+def test_partial_checkbox_feedback_survives_shuffled_option_letters():
+    feedback = {
+        "status": "partial",
+        "score": 0.25,
+        "max_score": 1.0,
+        "selected_texts": ["b. Keras", "c. Неверный API"],
+        "correct_texts": [],
+        "incorrect_texts": [],
+    }
+    shuffled = {
+        "a": "a. Неверный API",
+        "b": "b. Другой ответ",
+        "c": "c. Keras",
+        "d": "d. Правильный API",
+    }
+
+    assert _same_as_failed_answer(["a", "c"], feedback, shuffled)
+    assert not _same_as_failed_answer(["c", "d"], feedback, shuffled)
+    hint = _build_review_feedback_hint([feedback], "checkbox")
+    assert "0.25/1.0" in hint
+    assert "добавь недостающие" in hint
+
+
+def test_all_answers_option_adds_explicit_ai_check():
+    hint = _get_all_answers_hint(
+        {
+            "a": "a. первый пункт",
+            "b": "b. все перечисленное",
+            "c": "c. третий пункт",
+        },
+        "checkbox",
+    )
+
+    assert "Вариант b" in hint
+    assert "только этот вариант" in hint
+    assert _get_all_answers_hint({"a": "a. все перечисленное"}, "radio") == ""
+
+
+def test_explicit_review_feedback_adds_correct_and_removes_incorrect():
+    feedback = {
+        "correct_texts": ["b. Верный вариант"],
+        "incorrect_texts": ["a. Ошибочный вариант"],
+    }
+    options = {
+        "a": "a. Верный вариант",
+        "b": "b. Ошибочный вариант",
+        "c": "c. Новый вариант",
+    }
+
+    assert _apply_explicit_review_feedback(["b", "c"], feedback, options) == ["c", "a"]
+
+
+def test_zero_score_for_all_specific_options_switches_to_all_answers():
+    feedback = {
+        "score": 0.0,
+        "max_score": 1.0,
+        "selected_texts": ["a. отображение", "b. стимул", "d. фокус"],
+    }
+    shuffled = {
+        "a": "a. фокус",
+        "b": "b. все перечисленное",
+        "c": "c. отображение",
+        "d": "d. стимул",
+    }
+
+    assert _alternative_for_repeated_answer(
+        ["a", "c", "d"], feedback, shuffled
+    ) == ["b"]
+
+
+def test_partial_score_does_not_trigger_all_answers_heuristic():
+    feedback = {
+        "score": 0.25,
+        "max_score": 1.0,
+        "selected_texts": ["a. первый", "b. второй", "d. третий"],
+    }
+    options = {
+        "a": "a. первый",
+        "b": "b. второй",
+        "c": "c. все ответы верны",
+        "d": "d. третий",
+    }
+
+    assert _alternative_for_repeated_answer(["a", "b", "d"], feedback, options) == []
 
 
 def test_review_link_is_opened_when_attempt_page_has_no_questions():
