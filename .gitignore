@@ -221,12 +221,11 @@ auth_data.py
 
 *.pkl
 
-!bot_history.log
-
-.env
-
-html/*
-HTML Courses/*
+# Runtime logs and local Moodle snapshots
+bot_history.log
+html/
+HTML Courses/
+html_лекции.html
 
 # Project runtime data
 data/*
@@ -235,3 +234,8 @@ data/*
 # Local webdrivers
 drivers/*
 !drivers/.gitkeep
+oldDriver/
+
+# Local backups and experimental scripts
+backup/
+test/
